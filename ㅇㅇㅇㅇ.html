@@ -1,0 +1,4699 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>V-RIG STUDIO — 가상 기타 모델 & AI 이펙터 페달보드</title>
+  <style>
+    :root {
+      --bg-main: #0b0d12;
+      --bg-panel: #131720;
+      --bg-card: #191f2c;
+      --bg-elevated: #212838;
+      --border: #2a3346;
+      --border-bright: #3d4a66;
+      --text-main: #eef2f9;
+      --text-sub: #94a3b8;
+      --text-dim: #64748b;
+      --amber: #f59e0b;
+      --amber-glow: rgba(245, 158, 11, 0.35);
+      --cyan: #06b6d4;
+      --cyan-glow: rgba(6, 182, 212, 0.35);
+      --emerald: #10b981;
+      --emerald-glow: rgba(16, 185, 129, 0.35);
+      --rose: #f43f5e;
+      --purple: #8b5cf6;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background: radial-gradient(circle at 50% 0%, #161c2a 0%, var(--bg-main) 65%);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      padding: 14px;
+      line-height: 1.4;
+    }
+
+    .app-shell {
+      max-width: 1520px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* Header */
+    .top-header {
+      background: linear-gradient(180deg, #1a202e 0%, #121620 100%);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 18px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-badge {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #0b0d12;
+      font-weight: 900;
+      font-size: 13px;
+      padding: 5px 9px;
+      border-radius: 6px;
+      letter-spacing: 0.06em;
+    }
+
+    .brand-title h1 {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+
+    .brand-title span {
+      font-size: 11px;
+      color: var(--text-sub);
+    }
+
+    .header-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .audio-badge {
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid rgba(244, 63, 94, 0.5);
+      background: rgba(244, 63, 94, 0.15);
+      color: #fda4af;
+      transition: all 0.2s;
+    }
+
+    .audio-badge.active {
+      border-color: rgba(16, 185, 129, 0.6);
+      background: rgba(16, 185, 129, 0.16);
+      color: #6ee7b7;
+      box-shadow: 0 0 14px var(--emerald-glow);
+    }
+
+    .btn {
+      background: var(--bg-elevated);
+      color: var(--text-main);
+      border: 1px solid var(--border-bright);
+      border-radius: 7px;
+      padding: 7px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s;
+    }
+
+    .btn:hover {
+      background: #2b354b;
+      border-color: #526387;
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .btn-amber {
+      background: linear-gradient(180deg, #f59e0b, #d97706);
+      color: #090b10;
+      border-color: #fbbf24;
+      font-weight: 700;
+    }
+
+    .btn-amber:hover {
+      background: linear-gradient(180deg, #fbbf24, #f59e0b);
+    }
+
+    .btn-cyan {
+      background: rgba(6, 182, 212, 0.18);
+      border-color: rgba(6, 182, 212, 0.55);
+      color: #67e8f9;
+    }
+
+    .btn-cyan:hover {
+      background: rgba(6, 182, 212, 0.28);
+    }
+
+    .btn-emerald {
+      background: rgba(16, 185, 129, 0.18);
+      border-color: rgba(16, 185, 129, 0.55);
+      color: #6ee7b7;
+    }
+
+    .btn-emerald:hover {
+      background: rgba(16, 185, 129, 0.28);
+    }
+
+    .btn-rose {
+      background: rgba(244, 63, 94, 0.15);
+      border-color: rgba(244, 63, 94, 0.45);
+      color: #fda4af;
+    }
+
+    .btn-sm {
+      padding: 4px 8px;
+      font-size: 11px;
+      border-radius: 5px;
+    }
+
+    select, input[type="number"] {
+      background: #0e121a;
+      color: var(--text-main);
+      border: 1px solid var(--border-bright);
+      border-radius: 6px;
+      padding: 6px 9px;
+      font-size: 12px;
+      font-weight: 600;
+      outline: none;
+    }
+
+    select:focus, input[type="number"]:focus {
+      border-color: var(--amber);
+    }
+
+    .meter-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #0b0e14;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 5px 10px;
+    }
+
+    .vu-bars {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      width: 72px;
+    }
+
+    .vu-track {
+      height: 6px;
+      background: #1b2230;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .vu-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #10b981 0%, #f59e0b 75%, #f43f5e 100%);
+      transition: width 0.05s linear;
+    }
+
+    #scopeCanvas {
+      width: 110px;
+      height: 28px;
+      background: #07090d;
+      border-radius: 4px;
+      border: 1px solid #1e2636;
+    }
+
+    /* =========================================================================
+     * VISUAL GUITAR & PICKUP STAGE
+     * ========================================================================= */
+    .guitar-stage-deck {
+      background: linear-gradient(180deg, #151c29 0%, #101520 100%);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.42);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .guitar-model-tabs {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(145px, 1fr));
+      gap: 8px;
+      overflow-x: auto;
+    }
+
+    .gmodel-card {
+      background: #121722;
+      border: 1.5px solid var(--border);
+      border-radius: 9px;
+      padding: 8px 10px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      transition: all 0.16s;
+      text-align: left;
+    }
+
+    .gmodel-card:hover {
+      border-color: #526387;
+      background: #192030;
+    }
+
+    .gmodel-card.active {
+      border-color: var(--amber);
+      background: linear-gradient(180deg, rgba(245, 158, 11, 0.16) 0%, rgba(245, 158, 11, 0.05) 100%);
+      box-shadow: 0 0 16px rgba(245, 158, 11, 0.18);
+    }
+
+    .gmodel-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .gmodel-card.active .gmodel-card-top {
+      color: #fde68a;
+    }
+
+    .gmodel-tag {
+      font-size: 9px;
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-sub);
+    }
+
+    .gmodel-card-sub {
+      font-size: 10px;
+      color: var(--text-sub);
+    }
+
+    .guitar-visual-grid {
+      display: grid;
+      grid-template-columns: 1.45fr 1fr;
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    @media (max-width: 1120px) {
+      .guitar-visual-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .guitar-canvas-box {
+      background: radial-gradient(circle at 42% 50%, #1c2436 0%, #090c12 85%);
+      border: 1px solid var(--border-bright);
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 6px;
+      position: relative;
+    }
+
+    .guitar-canvas-hint {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--text-sub);
+    }
+
+    #guitarSvgStage {
+      width: 100%;
+      height: 215px;
+      display: block;
+    }
+
+    .svg-pickup-hit {
+      cursor: pointer;
+      transition: filter 0.15s;
+    }
+
+    .svg-pickup-hit:hover {
+      filter: brightness(1.22);
+    }
+
+    .svg-string-line {
+      cursor: pointer;
+      transition: stroke 0.1s;
+    }
+
+    .svg-string-line:hover {
+      stroke: #fbbf24 !important;
+    }
+
+    @keyframes stringVibrate {
+      0%   { transform: translateY(0px); }
+      25%  { transform: translateY(-2.2px); }
+      50%  { transform: translateY(2.2px); }
+      75%  { transform: translateY(-1.2px); }
+      100% { transform: translateY(0px); }
+    }
+
+    .string-vibrating {
+      animation: stringVibrate 0.07s linear 5;
+    }
+
+    .pickup-control-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .pickup-selectors-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .rig-field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .rig-field label {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      color: var(--amber);
+      text-transform: uppercase;
+    }
+
+    .pickup-pos-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .pos-pill-btn {
+      flex: 1;
+      min-width: 68px;
+      padding: 6px 6px;
+      border-radius: 6px;
+      background: #101520;
+      border: 1px solid var(--border-bright);
+      color: var(--text-sub);
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s;
+    }
+
+    .pos-pill-btn:hover {
+      background: #1c2436;
+      color: #fff;
+    }
+
+    .pos-pill-btn.active {
+      background: rgba(6, 182, 212, 0.2);
+      border-color: var(--cyan);
+      color: #a5f3fc;
+      box-shadow: 0 0 10px rgba(6, 182, 212, 0.22);
+    }
+
+    .pickup-bottom-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: #0e131d;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+    }
+
+    .pickup-spec-info {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      flex: 1;
+    }
+
+    .pickup-spec-title {
+      font-size: 12px;
+      font-weight: 800;
+      color: #fde68a;
+    }
+
+    .pickup-spec-desc {
+      font-size: 11px;
+      color: var(--text-sub);
+      line-height: 1.35;
+    }
+
+    .pickup-spec-metrics {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-family: ui-monospace, monospace;
+      font-size: 10px;
+      color: var(--cyan);
+      margin-top: 2px;
+    }
+
+    /* AI Analyzer & Tab Transcriber Section */
+    .ai-deck {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+
+    .section-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      color: var(--cyan);
+      text-transform: uppercase;
+    }
+
+    .ai-grid {
+      display: grid;
+      grid-template-columns: 270px 1fr 310px;
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    @media (max-width: 1180px) {
+      .ai-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .ai-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .dropzone {
+      border: 1.5px dashed var(--border-bright);
+      border-radius: 8px;
+      padding: 12px 10px;
+      text-align: center;
+      cursor: pointer;
+      background: rgba(11, 14, 20, 0.6);
+      transition: all 0.2s;
+    }
+
+    .dropzone:hover, .dropzone.dragover {
+      border-color: var(--cyan);
+      background: rgba(6, 182, 212, 0.08);
+    }
+
+    .dropzone-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .dropzone-sub {
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-top: 3px;
+    }
+
+    .ref-samples {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .ref-label {
+      font-size: 11px;
+      color: var(--text-sub);
+      font-weight: 600;
+    }
+
+    .ref-btn-group {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 4px;
+    }
+
+    .ref-btn {
+      justify-content: space-between;
+      font-size: 11px;
+      padding: 5px 9px;
+      background: #121722;
+    }
+
+    .ref-btn.active {
+      border-color: var(--cyan);
+      background: rgba(6, 182, 212, 0.14);
+      color: #a5f3fc;
+    }
+
+    /* Waveform Selector */
+    .wave-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 11px;
+    }
+
+    .wave-info {
+      color: var(--text-sub);
+      font-weight: 600;
+    }
+
+    .wave-time-badge {
+      background: #0b0e14;
+      border: 1px solid var(--border);
+      padding: 3px 8px;
+      border-radius: 5px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      color: var(--cyan);
+      font-size: 11px;
+    }
+
+    .wave-wrap {
+      position: relative;
+      height: 102px;
+      background: #080b10;
+      border: 1px solid var(--border-bright);
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: ew-resize;
+    }
+
+    #waveCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .wave-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    /* Transcription & Report Box */
+    .transcribe-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .field-mini {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .field-mini label {
+      font-size: 10px;
+      color: var(--text-sub);
+      font-weight: 700;
+    }
+
+    .report-box {
+      background: #0d1118;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 8px 10px;
+      font-size: 11px;
+    }
+
+    .report-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 4px;
+      color: var(--text-sub);
+    }
+
+    .report-row strong {
+      color: var(--amber);
+    }
+
+    .spec-bars {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 4px;
+      margin-top: 6px;
+      align-items: end;
+      height: 36px;
+      padding-top: 4px;
+      border-top: 1px solid #1e2536;
+    }
+
+    .spec-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      height: 100%;
+      justify-content: flex-end;
+    }
+
+    .spec-bar-fill {
+      width: 100%;
+      max-width: 18px;
+      background: linear-gradient(180deg, var(--cyan), #2563eb);
+      border-radius: 2px 2px 0 0;
+      min-height: 3px;
+      transition: height 0.25s;
+    }
+
+    .spec-col span {
+      font-size: 9px;
+      color: var(--text-dim);
+    }
+
+    /* Pedalboard Section */
+    .pedalboard-deck {
+      background: linear-gradient(180deg, #151a24 0%, #0f131b 100%);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+    }
+
+    .signal-flow-label {
+      font-size: 11px;
+      color: var(--text-sub);
+      font-family: ui-monospace, monospace;
+      background: #0b0e14;
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+
+    .pedals-row {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(195px, 1fr));
+      gap: 12px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .pedal {
+      border-radius: 11px;
+      padding: 12px 10px;
+      border: 1.5px solid #334155;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 10px;
+      position: relative;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 8px 18px rgba(0, 0, 0, 0.45);
+    }
+
+    .pedal-drive { background: linear-gradient(165deg, #451a03 0%, #271005 100%); border-color: #b45309; }
+    .pedal-mod   { background: linear-gradient(165deg, #0c4a6e 0%, #08263a 100%); border-color: #0284c7; }
+    .pedal-eq    { background: linear-gradient(165deg, #1e293b 0%, #0f172a 100%); border-color: #64748b; }
+    .pedal-delay { background: linear-gradient(165deg, #3b0764 0%, #1e0736 100%); border-color: #7e22ce; }
+    .pedal-rev   { background: linear-gradient(165deg, #064e3b 0%, #042920 100%); border-color: #059669; }
+    .pedal-amp   { background: linear-gradient(165deg, #262626 0%, #121212 100%); border-color: #ca8a04; }
+
+    .pedal-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .pedal-name {
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.06em;
+    }
+
+    .pedal-stage {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(0, 0, 0, 0.45);
+      color: var(--text-sub);
+    }
+
+    .pedal-mode-select {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.45);
+      border-color: rgba(255, 255, 255, 0.18);
+      font-size: 11px;
+      padding: 5px 7px;
+    }
+
+    .knobs-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      justify-items: center;
+      align-items: center;
+      padding: 4px 0;
+    }
+
+    .knobs-grid-4 {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px 10px;
+    }
+
+    /* Rotary Knob */
+    .knob-unit {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      cursor: ns-resize;
+    }
+
+    .knob-svg {
+      width: 44px;
+      height: 44px;
+      filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.6));
+    }
+
+    .knob-svg.knob-sm {
+      width: 38px;
+      height: 38px;
+    }
+
+    .knob-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: #cbd5e1;
+      letter-spacing: 0.03em;
+    }
+
+    .knob-val {
+      font-size: 10px;
+      font-family: ui-monospace, monospace;
+      color: #94a3b8;
+    }
+
+    /* 5-Band EQ Faders */
+    .eq-faders {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 4px;
+      background: rgba(0, 0, 0, 0.35);
+      border-radius: 8px;
+      padding: 8px 4px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .eq-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .eq-slider-wrap {
+      height: 86px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    input[type="range"].eq-vslider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 78px;
+      height: 5px;
+      background: #334155;
+      border-radius: 3px;
+      transform: rotate(-90deg);
+      cursor: pointer;
+    }
+
+    input[type="range"].eq-vslider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: #f8fafc;
+      border: 2px solid var(--cyan);
+      box-shadow: 0 0 6px rgba(6, 182, 212, 0.8);
+    }
+
+    .eq-freq {
+      font-size: 9px;
+      font-weight: 700;
+      color: #cbd5e1;
+    }
+
+    .eq-db {
+      font-size: 9px;
+      font-family: ui-monospace, monospace;
+      color: var(--cyan);
+    }
+
+    .eq-presets {
+      display: flex;
+      gap: 4px;
+      justify-content: center;
+    }
+
+    /* Footswitch */
+    .footswitch-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(0, 0, 0, 0.35);
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .led {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: #1e293b;
+      border: 1px solid #475569;
+      transition: all 0.15s;
+    }
+
+    .led.on {
+      background: #ef4444;
+      border-color: #fca5a5;
+      box-shadow: 0 0 10px #ef4444, 0 0 20px rgba(239, 68, 68, 0.6);
+    }
+
+    .stomp-btn {
+      background: radial-gradient(circle at 35% 35%, #e2e8f0, #64748b);
+      border: 2px solid #334155;
+      color: #0f172a;
+      font-size: 10px;
+      font-weight: 900;
+      padding: 4px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.6);
+    }
+
+    .stomp-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* Tab Sequencer Section */
+    .tab-deck {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+    }
+
+    .tab-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: var(--bg-card);
+      padding: 10px 12px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+    }
+
+    .tool-group {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .tool-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-sub);
+    }
+
+    .divider-v {
+      width: 1px;
+      height: 22px;
+      background: var(--border-bright);
+      margin: 0 2px;
+    }
+
+    /* Tab Grid Scroll Area */
+    .tab-scroll-container {
+      overflow-x: auto;
+      background: #0b0e14;
+      border: 1px solid var(--border-bright);
+      border-radius: 9px;
+      position: relative;
+    }
+
+    .tab-grid-table {
+      display: inline-flex;
+      flex-direction: column;
+      min-width: 100%;
+    }
+
+    .tab-bar-headers-row {
+      display: flex;
+      background: #141924;
+      border-bottom: 1px solid var(--border-bright);
+    }
+
+    .sticky-corner {
+      position: sticky;
+      left: 0;
+      z-index: 20;
+      width: 78px;
+      min-width: 78px;
+      background: #141924;
+      border-right: 2px solid var(--border-bright);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--amber);
+    }
+
+    .bar-header-block {
+      width: 576px;
+      min-width: 576px;
+      padding: 6px 10px;
+      border-right: 2px solid var(--amber);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      background: #141924;
+    }
+
+    .bar-header-block.in-loop {
+      background: linear-gradient(90deg, rgba(6, 182, 212, 0.14), rgba(6, 182, 212, 0.04));
+      border-top: 2px solid var(--cyan);
+    }
+
+    .bar-header-block.out-loop {
+      opacity: 0.52;
+    }
+
+    .bar-title {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .loop-pill {
+      font-size: 9px;
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: rgba(6, 182, 212, 0.25);
+      color: #67e8f9;
+      border: 1px solid rgba(6, 182, 212, 0.5);
+    }
+
+    .chord-pill {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 1px 7px;
+      border-radius: 4px;
+      background: rgba(245, 158, 11, 0.2);
+      color: #fde68a;
+      border: 1px solid rgba(245, 158, 11, 0.55);
+      cursor: pointer;
+    }
+
+    .chord-pill:hover {
+      background: rgba(245, 158, 11, 0.35);
+    }
+
+    .bar-mini-btns {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .mini-chip {
+      background: #1e2636;
+      color: #cbd5e1;
+      border: 1px solid #334155;
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .mini-chip:hover {
+      background: #2d384f;
+      color: #fff;
+    }
+
+    .tab-row {
+      display: flex;
+      align-items: stretch;
+      border-bottom: 1px solid #1c2333;
+    }
+
+    .tab-row:last-child {
+      border-bottom: none;
+    }
+
+    .sticky-string-label {
+      position: sticky;
+      left: 0;
+      z-index: 15;
+      width: 78px;
+      min-width: 78px;
+      background: #121722;
+      border-right: 2px solid var(--border-bright);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 10px;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .sticky-string-label:hover {
+      background: #1c2436;
+    }
+
+    .sticky-string-label.pm-label {
+      background: #0e121b;
+      color: var(--amber);
+      font-size: 10px;
+      height: 24px;
+      cursor: default;
+    }
+
+    .tab-cell {
+      width: 36px;
+      min-width: 36px;
+      height: 36px;
+      border-right: 1px solid #1a2130;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      position: relative;
+      transition: background 0.08s;
+    }
+
+    .tab-cell.pm-cell {
+      height: 24px;
+      font-size: 9px;
+      color: var(--amber);
+      background: #0d1017;
+    }
+
+    .tab-cell.string-cell::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      height: var(--wire-h, 1px);
+      background: rgba(148, 163, 184, 0.24);
+      pointer-events: none;
+    }
+
+    .tab-cell.beat-start {
+      border-left: 1px solid #2e3a52;
+    }
+
+    .tab-cell.bar-end {
+      border-right: 2px solid var(--amber);
+    }
+
+    .tab-cell:hover {
+      background: rgba(245, 158, 11, 0.14);
+    }
+
+    .tab-cell.selected {
+      background: rgba(6, 182, 212, 0.24) !important;
+      outline: 2px solid var(--cyan);
+      outline-offset: -2px;
+      z-index: 5;
+    }
+
+    .tab-cell.playing-step {
+      background: rgba(245, 158, 11, 0.25) !important;
+    }
+
+    .note-pill {
+      position: relative;
+      z-index: 2;
+      background: #1e293b;
+      color: #f8fafc;
+      border: 1px solid #475569;
+      border-radius: 5px;
+      padding: 2px 6px;
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1.1;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    .note-pill.pm-note {
+      border-color: var(--amber);
+      color: #fde68a;
+      background: #2b1d08;
+    }
+
+    .note-pill.dead-note {
+      border-color: var(--rose);
+      color: #fda4af;
+      background: #2f0d16;
+    }
+
+    /* Quick Input Pad */
+    .quick-pad {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 5px;
+      background: var(--bg-card);
+      padding: 9px 12px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+    }
+
+    .fret-btn {
+      min-width: 30px;
+      height: 28px;
+      padding: 0 6px;
+      border-radius: 5px;
+      background: #141923;
+      border: 1px solid #334155;
+      color: #e2e8f0;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .fret-btn:hover {
+      background: var(--amber);
+      color: #090b10;
+      border-color: var(--amber);
+    }
+
+    .status-toast {
+      font-size: 11px;
+      color: var(--text-sub);
+      margin-left: auto;
+    }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- TOP HEADER & MASTER -->
+  <header class="top-header">
+    <div class="brand-group">
+      <div class="brand-badge">V-RIG STUDIO</div>
+      <div class="brand-title">
+        <h1>AI 톤 매칭 · 가상 기타 & 이펙터 페달보드</h1>
+        <span>① AI 이펙터 매칭 & 채보 · ② 가상 일렉·어쿠스틱 기타 & 픽업 · ③ 6단 스톰프박스 톤 · ④ 6현 타브 시퀀서</span>
+      </div>
+    </div>
+
+    <div class="header-controls">
+      <div id="audioStatusBadge" class="audio-badge" title="클릭하여 오디오 엔진 활성화">🔇 클릭 시 오디오 활성화</div>
+      <button id="btnChordTest" class="btn btn-amber">🎸 코드 스트럼 테스트</button>
+
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span class="tool-label">톤 프리셋:</span>
+        <select id="tonePresetSelect"></select>
+      </div>
+
+      <div id="masterKnobWrap"></div>
+
+      <div class="meter-box">
+        <div class="vu-bars">
+          <div class="vu-track"><div id="vuL" class="vu-fill"></div></div>
+          <div class="vu-track"><div id="vuR" class="vu-fill"></div></div>
+        </div>
+        <canvas id="scopeCanvas" width="220" height="56"></canvas>
+      </div>
+    </div>
+  </header>
+
+  <!-- 1. AI TONE MATCHER & REGION TAB TRANSCRIBER -->
+  <section class="ai-deck">
+    <div class="section-head">
+      <div class="section-title">
+        <span>STEP 1 · ✨ AI 오디오 이펙터 매칭 & 선택 구간 타브 채보 엔진</span>
+      </div>
+      <span style="font-size:11px;color:var(--text-sub);">음원을 불러온 뒤 파형에서 원하는 구간을 드래그해 기타/픽업/이펙터 톤 추출 또는 6현 타브 악보로 자동 채보하세요</span>
+    </div>
+
+    <div class="ai-grid">
+      <!-- 1. Audio Source & Built-in Reference Clips -->
+      <div class="ai-card">
+        <div id="dropZone" class="dropzone">
+          <input type="file" id="audioFileInput" accept="audio/*" hidden />
+          <div class="dropzone-title">📂 오디오 파일 업로드 (MP3, WAV, OGG, M4A)</div>
+          <div class="dropzone-sub">클릭하거나 파일을 이곳에 드래그 앤 드롭</div>
+        </div>
+
+        <div class="ref-samples">
+          <div class="ref-label">🎧 내장 레퍼런스 기타 샘플 (즉시 테스트):</div>
+          <div class="ref-btn-group">
+            <button class="btn ref-btn" data-ref="strumChord">
+              <span>샘플 1: 어쿠스틱 & 일렉 코드 스트럼 (Em-C-G-D)</span>
+              <span>STRUM</span>
+            </button>
+            <button class="btn ref-btn" data-ref="cleanChorus">
+              <span>샘플 2: 80s 코러스 클린 아르페지오</span>
+              <span>CLEAN</span>
+            </button>
+            <button class="btn ref-btn active" data-ref="metalScoop">
+              <span>샘플 3: 90s 하이게인 메탈 팜뮤트 리프</span>
+              <span>METAL</span>
+            </button>
+            <button class="btn ref-btn" data-ref="fuzzLead">
+              <span>샘플 4: 사이키델릭 퍼즈 & 딜레이 리드</span>
+              <span>FUZZ</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Interactive Waveform Region Selector -->
+      <div class="ai-card">
+        <div class="wave-header">
+          <span id="loadedTrackName" class="wave-info">로드된 오디오: 샘플 3 — 90s 하이게인 메탈 팜뮤트 리프</span>
+          <span id="regionTimeBadge" class="wave-time-badge">구간: 0.00s ~ 4.00s (4.00s)</span>
+        </div>
+
+        <div id="waveWrap" class="wave-wrap" title="드래그하여 분석 및 채보할 구간을 선택하세요">
+          <canvas id="waveCanvas"></canvas>
+        </div>
+
+        <div class="wave-actions">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button id="btnPreviewRegion" class="btn btn-cyan">▶ 선택 구간 미리듣기</button>
+            <button id="btnSelectAllWave" class="btn btn-sm">전체 선택</button>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button id="btnMatchTone" class="btn btn-amber">✨ 이 톤으로 매칭</button>
+            <button id="btnRestoreTone" class="btn btn-sm" disabled>↩ 분석 전 톤으로 복원</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Selected Region Tab Transcription & AI Spectral Report -->
+      <div class="ai-card">
+        <div class="transcribe-controls" style="grid-template-columns: 1fr 1fr 1fr;">
+          <div class="field-mini">
+            <label>채보 방식</label>
+            <select id="transcribeModeSelect">
+              <option value="auto" selected>자동 (스트럼+리프)</option>
+              <option value="strum">코드 스트럼 우선</option>
+              <option value="riff">단음 리프/솔로</option>
+            </select>
+          </div>
+          <div class="field-mini">
+            <label>채보 대상 길이</label>
+            <select id="transcribeBarsSelect">
+              <option value="auto">자동 (구간 길이 맞춤)</option>
+              <option value="1">1마디 (16스텝)</option>
+              <option value="2">2마디 (32스텝)</option>
+              <option value="4" selected>4마디 (64스텝)</option>
+            </select>
+          </div>
+          <div class="field-mini">
+            <label>운지 포지션 우선</label>
+            <select id="transcribePosSelect">
+              <option value="all" selected>자동 최적 운지</option>
+              <option value="low">로우 (0~5프렛)</option>
+              <option value="mid">미들 (5~12프렛)</option>
+              <option value="high">하이 (12~22프렛)</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;">
+          <label style="font-size:11px;color:var(--text-sub);display:flex;align-items:center;gap:5px;cursor:pointer;">
+            <input type="checkbox" id="chkPowerChord" checked />
+            저음 리프 파워코드 보강
+          </label>
+          <div style="display:flex;gap:5px;">
+            <button id="btnTranscribeRegion" class="btn btn-emerald">🎼 선택 구간 타브 채보</button>
+            <button id="btnRestoreTab" class="btn btn-sm" disabled>↩ 복원</button>
+          </div>
+        </div>
+
+        <div class="report-box">
+          <div class="report-row">
+            <span>톤 분석 / 매칭 리그:</span>
+            <strong id="repStyle">대기 중 (버튼을 눌러 분석)</strong>
+          </div>
+          <div class="report-row">
+            <span>크레스트 / 포화도:</span>
+            <strong id="repDynamics">— dB / — %</strong>
+          </div>
+          <div class="report-row">
+            <span>인식 코드 진행:</span>
+            <strong id="repChords" style="color:var(--emerald);">—</strong>
+          </div>
+          <div class="spec-bars">
+            <div class="spec-col"><div id="sb0" class="spec-bar-fill" style="height:40%"></div><span>100Hz</span></div>
+            <div class="spec-col"><div id="sb1" class="spec-bar-fill" style="height:55%"></div><span>320Hz</span></div>
+            <div class="spec-col"><div id="sb2" class="spec-bar-fill" style="height:45%"></div><span>900Hz</span></div>
+            <div class="spec-col"><div id="sb3" class="spec-bar-fill" style="height:65%"></div><span>2.4k</span></div>
+            <div class="spec-col"><div id="sb4" class="spec-bar-fill" style="height:50%"></div><span>6.0k</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. VISUAL GUITAR MODEL & INTERACTIVE PICKUP SELECTOR -->
+  <section class="guitar-stage-deck">
+    <div class="section-head" style="margin-bottom:0;">
+      <div class="section-title" style="color:var(--amber);">
+        <span>STEP 2 · 🎸 가상 기타 모델 & 픽업 쇼케이스 (바디 & 픽업 직접 선택)</span>
+      </div>
+      <span style="font-size:11px;color:var(--text-sub);">기타 모델을 고른 뒤 화면 속 기타 위의 픽업이나 스위치를 직접 클릭해 포지션을 전환하세요</span>
+    </div>
+
+    <!-- 6 Guitar Model Cards -->
+    <div id="guitarModelTabs" class="guitar-model-tabs"></div>
+
+    <!-- Visual SVG Guitar + Pickup & Controls -->
+    <div class="guitar-visual-grid">
+      <div class="guitar-canvas-box">
+        <div class="guitar-canvas-hint">
+          <span id="guitarVisualCaption" style="font-weight:700;color:#fde68a;">LP-Style (Les Paul) · Heritage Cherry Sunburst</span>
+          <span>💡 기타 위의 <strong>픽업·스위치</strong> 클릭 = 포지션 변경 / <strong>기타 줄</strong> 클릭 = 현 연주</span>
+        </div>
+        <svg id="guitarSvgStage" viewBox="0 0 680 220" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+
+      <div class="pickup-control-panel">
+        <div class="pickup-selectors-row">
+          <div class="rig-field">
+            <label>🧲 장착 픽업 타입 (Coil Voicing)</label>
+            <select id="pickupVoicingSelect">
+              <option value="single">Vintage Single-Coil (Alnico V)</option>
+              <option value="humbucker" selected>PAF / Alnico Humbucker</option>
+              <option value="high_humbucker">High-Output Ceramic Humbucker</option>
+              <option value="p90">P-90 Soapbar Single-Coil</option>
+              <option value="active_emg">Active EMG 81/85 Preamp</option>
+              <option value="piezo">Acoustic Piezo / Soundhole</option>
+            </select>
+          </div>
+
+          <div class="rig-field">
+            <label>🎚️ 픽업 셀렉터 포지션</label>
+            <select id="pickupPosSelect"></select>
+          </div>
+        </div>
+
+        <!-- Quick Clickable Position Switch Bar -->
+        <div class="rig-field">
+          <label>⚡ 5단 / 3단 셀렉터 빠른 전환</label>
+          <div id="pickupPosPills" class="pickup-pos-pills"></div>
+        </div>
+
+        <!-- Guitar Tone/Pick Knobs + Live Spec Readout -->
+        <div class="pickup-bottom-row">
+          <div class="pickup-spec-info">
+            <div class="pickup-spec-title" id="pickupSpecTitle">LP-Style + PAF Humbucker (Bridge)</div>
+            <div class="pickup-spec-desc" id="pickupSpecDesc">
+              마호가니 바디의 두터운 중저음과 험버커 브릿지의 높은 출력이 결합되어 드라이브와 앰프 게인을 강하게 밀어줍니다.
+            </div>
+            <div class="pickup-spec-metrics" id="pickupSpecMetrics"></div>
+          </div>
+
+          <div id="guitarKnobsWrap" style="display:flex;align-items:center;gap:8px;"></div>
+          <button id="btnAuditionOpenStrings" class="btn btn-sm btn-cyan" style="white-space:nowrap;">🎵 6현 시연</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. 6-STAGE SERIAL STOMPBOX PEDALBOARD -->
+  <section class="pedalboard-deck">
+    <div class="section-head">
+      <div class="section-title" style="color:var(--amber);">
+        <span>STEP 3 · 🎛️ 이펙터 톤 (6단 직렬 스톰프박스 & 4×12 앰프 캐비닛)</span>
+      </div>
+      <div class="signal-flow-label">GUITAR/PICKUP ➔ [1. DRIVE] ➔ [2. MOD] ➔ [3. 5-BAND EQ] ➔ [4. DELAY] ➔ [5. REVERB] ➔ [6. 4×12 AMP] ➔ OUT</div>
+    </div>
+
+    <div class="pedals-row">
+      <!-- 1. DRIVE -->
+      <div class="pedal pedal-drive">
+        <div class="pedal-top">
+          <span class="pedal-name" style="color:#fbbf24;">OVERDRIVE</span>
+          <span class="pedal-stage">STAGE 1</span>
+        </div>
+        <select id="driveType" class="pedal-mode-select">
+          <option value="tube">Tube OD (진공관 오버드라이브)</option>
+          <option value="crunch">Blues Crunch (블루스 크런치)</option>
+          <option value="dist">Hard Distortion (하드 디스토션)</option>
+          <option value="metal">High-Gain Metal (하이게인 메탈)</option>
+          <option value="fuzz">Vintage Fuzz (빈티지 퍼즈)</option>
+          <option value="boost">Clean Boost (클린 부스트)</option>
+        </select>
+        <div id="driveKnobs" class="knobs-grid"></div>
+        <div class="footswitch-row">
+          <div id="ledDrive" class="led on"></div>
+          <button id="swDrive" class="stomp-btn">BYPASS / ON</button>
+        </div>
+      </div>
+
+      <!-- 2. MODULATION -->
+      <div class="pedal pedal-mod">
+        <div class="pedal-top">
+          <span class="pedal-name" style="color:#38bdf8;">MODULATION</span>
+          <span class="pedal-stage">STAGE 2</span>
+        </div>
+        <select id="modType" class="pedal-mode-select">
+          <option value="chorus">Stereo Chorus (코러스)</option>
+          <option value="flanger">Jet Flanger (플랜저)</option>
+          <option value="phaser">4-Stage Phaser (페이저)</option>
+          <option value="tremolo">Opto Tremolo (트레몰로)</option>
+          <option value="vibrato">Pitch Vibrato (비브라토)</option>
+          <option value="rotary">Rotary Speaker (로터리)</option>
+        </select>
+        <div id="modKnobs" class="knobs-grid"></div>
+        <div class="footswitch-row">
+          <div id="ledMod" class="led"></div>
+          <button id="swMod" class="stomp-btn">BYPASS / ON</button>
+        </div>
+      </div>
+
+      <!-- 3. 5-BAND EQ -->
+      <div class="pedal pedal-eq">
+        <div class="pedal-top">
+          <span class="pedal-name" style="color:#e2e8f0;">5-BAND EQ</span>
+          <span class="pedal-stage">STAGE 3</span>
+        </div>
+        <div class="eq-presets">
+          <button class="btn btn-sm" data-eq-curve="flat">FLAT</button>
+          <button class="btn btn-sm" data-eq-curve="scoop">SCOOP</button>
+          <button class="btn btn-sm" data-eq-curve="lead">LEAD</button>
+        </div>
+        <div id="eqFadersWrap" class="eq-faders"></div>
+        <div class="footswitch-row">
+          <div id="ledEq" class="led on"></div>
+          <button id="swEq" class="stomp-btn">BYPASS / ON</button>
+        </div>
+      </div>
+
+      <!-- 4. DELAY -->
+      <div class="pedal pedal-delay">
+        <div class="pedal-top">
+          <span class="pedal-name" style="color:#c084fc;">ANALOG DELAY</span>
+          <span class="pedal-stage">STAGE 4</span>
+        </div>
+        <div style="font-size:11px;color:#d8b4fe;text-align:center;padding:3px 0;">BBD Echo & Tape Feedback</div>
+        <div id="delayKnobs" class="knobs-grid"></div>
+        <div class="footswitch-row">
+          <div id="ledDelay" class="led on"></div>
+          <button id="swDelay" class="stomp-btn">BYPASS / ON</button>
+        </div>
+      </div>
+
+      <!-- 5. REVERB -->
+      <div class="pedal pedal-rev">
+        <div class="pedal-top">
+          <span class="pedal-name" style="color:#34d399;">STUDIO REVERB</span>
+          <span class="pedal-stage">STAGE 5</span>
+        </div>
+        <div style="font-size:11px;color:#a7f3d0;text-align:center;padding:3px 0;">Stereo Hall & Spring Space</div>
+        <div id="reverbKnobs" class="knobs-grid"></div>
+        <div class="footswitch-row">
+          <div id="ledReverb" class="led on"></div>
+          <button id="swReverb" class="stomp-btn">BYPASS / ON</button>
+        </div>
+      </div>
+
+      <!-- 6. 4x12 AMP CABINET -->
+      <div class="pedal pedal-amp">
+        <div class="pedal-top">
+          <span class="pedal-name" style="color:#facc15;">4×12 TUBE AMP</span>
+          <span class="pedal-stage">STAGE 6</span>
+        </div>
+        <select id="ampType" class="pedal-mode-select">
+          <option value="clean">US Twin Clean (클린 콤보)</option>
+          <option value="plexi">UK Plexi Crunch (브리티시 크런치)</option>
+          <option value="recto" selected>Modern Recto (모던 하이게인)</option>
+          <option value="tweed">Vintage Tweed (빈티지 트위드)</option>
+        </select>
+        <div id="ampKnobs" class="knobs-grid knobs-grid-4"></div>
+        <div class="footswitch-row">
+          <div id="ledAmp" class="led on"></div>
+          <button id="swAmp" class="stomp-btn">CAB / ON</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. 6-STRING TAB SEQUENCER -->
+  <section class="tab-deck">
+    <div class="section-head" style="margin-bottom:0;">
+      <div class="section-title" style="color:var(--emerald);">
+        <span>STEP 4 · 🎼 6현 인터랙티브 기타 타브 시퀀서 (16분음표 그리드 · 팜뮤트 · 마디 루프)</span>
+      </div>
+      <span style="font-size:11px;color:var(--text-sub);">셀 클릭 후 숫자키(0~22), 방향키 이동, X(뮤트), M(팜뮤트), Space(재생/정지)</span>
+    </div>
+
+    <div class="tab-toolbar">
+      <div class="tool-group">
+        <button id="btnPlayStop" class="btn btn-emerald">▶ 재생 (Space)</button>
+        <button id="btnStopReset" class="btn">⏹ 정지</button>
+
+        <div class="divider-v"></div>
+
+        <span class="tool-label">BPM:</span>
+        <input type="number" id="bpmInput" min="40" max="240" value="124" style="width:66px;" />
+
+        <span class="tool-label">루프 마디:</span>
+        <select id="loopStartSelect"></select>
+        <span class="tool-label">~</span>
+        <select id="loopEndSelect"></select>
+      </div>
+
+      <div class="tool-group">
+        <span class="tool-label">데모 리프:</span>
+        <select id="demoRiffSelect">
+          <option value="metalRiff">90s 하이게인 메탈 팜뮤트 리프</option>
+          <option value="cleanArp">80s 코러스 클린 아르페지오</option>
+          <option value="funkQuack">스트랫 하프톤 펑키 리프</option>
+          <option value="bluesLead">블루스 펜타토닉 록 리드</option>
+        </select>
+        <button id="btnLoadDemoRiff" class="btn btn-cyan">불러오기</button>
+
+        <div class="divider-v"></div>
+
+        <button id="btnAddBar" class="btn">+ 마디 추가</button>
+        <button id="btnRemoveBar" class="btn">- 마디 삭제</button>
+        <button id="btnClearTab" class="btn btn-rose">전체 비우기</button>
+      </div>
+    </div>
+
+    <div class="tab-scroll-container" id="tabScrollContainer">
+      <div class="tab-grid-table" id="tabGridTable"></div>
+    </div>
+
+    <div class="quick-pad">
+      <span class="tool-label">빠른 프렛 입력:</span>
+      <div id="fretPadButtons" style="display:flex;flex-wrap:wrap;gap:4px;"></div>
+      <div class="divider-v"></div>
+      <button id="btnPadDead" class="fret-btn" style="color:#fda4af;border-color:#f43f5e;">X (뮤트)</button>
+      <button id="btnPadPM" class="fret-btn" style="color:#fde68a;border-color:#f59e0b;">P.M. 토글</button>
+      <button id="btnPadErase" class="fret-btn">지우기 (Del)</button>
+      <span id="statusToast" class="status-toast">준비 완료 · 기타 모델과 픽업을 고르고 연주해보세요</span>
+    </div>
+  </section>
+
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  /* =========================================================================
+   * 1. GUITAR MODELS, PICKUP VOICINGS & POSITION DEFINITIONS
+   * ========================================================================= */
+  const GUITAR_MODELS = {
+    lespaul: {
+      name: 'LP-Style (Les Paul)',
+      tag: 'HH',
+      finish: 'Heritage Cherry Sunburst',
+      hasMiddlePickup: false,
+      defaultVoicing: 'humbucker',
+      defaultPos: 'bridge',
+      bodyLowHz: 145, bodyLowDb: 3.4,
+      bodyMidHz: 520, bodyMidDb: 2.2,
+      bodyHighHz: 3600, bodyHighDb: -1.2,
+      pickBrightness: 0.86,
+      decayFactor: 0.9968,
+      sustainLabel: '긴 서스테인 · 두터운 중저음',
+      desc: '솔리드 마호가니 바디와 메이플 탑 조합으로 묵직한 저역과 길고 밀도 높은 서스테인을 제공합니다.'
+    },
+    strat: {
+      name: 'ST-Style (Stratocaster)',
+      tag: 'SSS',
+      finish: '3-Color Sunburst',
+      hasMiddlePickup: true,
+      defaultVoicing: 'single',
+      defaultPos: 'neck_mid',
+      bodyLowHz: 120, bodyLowDb: -1.0,
+      bodyMidHz: 950, bodyMidDb: -1.4,
+      bodyHighHz: 4200, bodyHighDb: 3.2,
+      pickBrightness: 0.96,
+      decayFactor: 0.9956,
+      sustainLabel: '맑은 배음 · 하프톤 찰랑거림',
+      desc: '앨더 바디와 볼트온 메이플 넥 특유의 빠르고 경쾌한 어택과 투명한 고음역 배음을 들려줍니다.'
+    },
+    tele: {
+      name: 'TL-Style (Telecaster)',
+      tag: 'SS',
+      finish: 'Butterscotch Blonde',
+      hasMiddlePickup: false,
+      defaultVoicing: 'single',
+      defaultPos: 'bridge',
+      bodyLowHz: 135, bodyLowDb: 0.8,
+      bodyMidHz: 1450, bodyMidDb: 2.6,
+      bodyHighHz: 4600, bodyHighDb: 3.6,
+      pickBrightness: 0.98,
+      decayFactor: 0.9958,
+      sustainLabel: '강렬한 트웽 · 명료한 어택',
+      desc: '애쉬 바디와 스틸 브릿지 플레이트가 만들어내는 직진성 강한 트웽(Twang)과 단단한 펀치감이 특징입니다.'
+    },
+    superstrat: {
+      name: 'Modern Superstrat',
+      tag: 'HH-Active',
+      finish: 'Midnight Cobalt Blue',
+      hasMiddlePickup: false,
+      defaultVoicing: 'active_emg',
+      defaultPos: 'bridge',
+      bodyLowHz: 115, bodyLowDb: 1.8,
+      bodyMidHz: 780, bodyMidDb: -1.8,
+      bodyHighHz: 4800, bodyHighDb: 2.8,
+      pickBrightness: 0.94,
+      decayFactor: 0.9965,
+      sustainLabel: '초고출력 · 타이트한 저역 응답',
+      desc: '24프렛 플랫 지판과 고출력 액티브 픽업 설계로 빠른 속주와 다운튜닝 하이게인 리프에 최적화되었습니다.'
+    },
+    hollow: {
+      name: 'ES-335 Semi-Hollow',
+      tag: 'HH-Jazz',
+      finish: 'Vintage Cherry Red',
+      hasMiddlePickup: false,
+      defaultVoicing: 'humbucker',
+      defaultPos: 'neck',
+      bodyLowHz: 165, bodyLowDb: 4.0,
+      bodyMidHz: 420, bodyMidDb: 2.8,
+      bodyHighHz: 3200, bodyHighDb: -2.4,
+      pickBrightness: 0.78,
+      decayFactor: 0.9962,
+      sustainLabel: '풍부한 에어감 · 따뜻한 울림',
+      desc: '세미할로우 챔버 구조의 공명감으로 재즈, 블루스, 빈티지 록에서 입체적이고 온기 있는 톤을 만들어냅니다.'
+    },
+    acoustic: {
+      name: 'Dreadnought Acoustic',
+      tag: 'PIEZO',
+      finish: 'Natural Sitka Spruce',
+      hasMiddlePickup: false,
+      defaultVoicing: 'piezo',
+      defaultPos: 'middle',
+      bodyLowHz: 110, bodyLowDb: 3.6,
+      bodyMidHz: 620, bodyMidDb: -2.2,
+      bodyHighHz: 5500, bodyHighDb: 4.4,
+      pickBrightness: 0.97,
+      decayFactor: 0.9952,
+      sustainLabel: '풍성한 바디 울림 · 크리스피 고음',
+      desc: '스프루스 상판과 드레드넛 울림통의 깊은 저음 공명 및 피에조 픽업의 섬세한 스트럼 질감을 재현합니다.'
+    }
+  };
+
+  const PICKUP_VOICINGS = {
+    single: {
+      name: 'Vintage Single-Coil',
+      gain: 0.90,
+      gainLabel: '-0.9 dB',
+      resHz: 3750, resQ: 2.6, resDb: 3.6,
+      lpfHz: 6900,
+      desc: '맑고 투명한 벨 톤과 섬세한 피킹 뉘앙스를 살려주는 싱글코일 픽업입니다.'
+    },
+    humbucker: {
+      name: 'PAF Alnico Humbucker',
+      gain: 1.38,
+      gainLabel: '+2.8 dB',
+      resHz: 2250, resQ: 2.0, resDb: 3.4,
+      lpfHz: 4800,
+      desc: '듀얼 코일의 두터운 중음역과 따뜻한 서스테인으로 록과 블루스에 이상적입니다.'
+    },
+    high_humbucker: {
+      name: 'High-Output Ceramic HB',
+      gain: 1.65,
+      gainLabel: '+4.3 dB',
+      resHz: 2550, resQ: 2.3, resDb: 4.2,
+      lpfHz: 5400,
+      desc: '고자력 세라믹 마그넷의 강력한 출력으로 진공관 앰프를 거칠게 드라이빙합니다.'
+    },
+    p90: {
+      name: 'P-90 Soapbar',
+      gain: 1.24,
+      gainLabel: '+1.9 dB',
+      resHz: 2650, resQ: 2.5, resDb: 4.2,
+      lpfHz: 5800,
+      desc: '싱글코일의 거친 어택감과 험버커의 중음역 펀치가 공존하는 빈티지 록 픽업입니다.'
+    },
+    active_emg: {
+      name: 'Active EMG 81/85',
+      gain: 1.85,
+      gainLabel: '+5.3 dB',
+      resHz: 2950, resQ: 1.7, resDb: 3.5,
+      lpfHz: 7200,
+      desc: '내장 프리앰프의 초고출력과 타이트한 저역 제어로 현대 메탈 리프에 최적화되어 있습니다.'
+    },
+    piezo: {
+      name: 'Acoustic Piezo / Soundhole',
+      gain: 1.05,
+      gainLabel: '+0.4 dB',
+      resHz: 4800, resQ: 1.4, resDb: 2.8,
+      lpfHz: 8500,
+      desc: '현의 울림과 바디 진동을 폭넓은 주파수 대역으로 수음하는 어쿠스틱 픽업입니다.'
+    }
+  };
+
+  const PICKUP_POSITIONS = {
+    neck: {
+      shortLabel: 'Neck',
+      label5: 'Pos 5 · Neck (넥 단독)',
+      label3: 'Rhythm · Neck (넥 단독)',
+      defaultPickPos: 0.30,
+      midShiftHz: 240, midShiftDb: 2.6,
+      notchHz: 0, notchDb: 0,
+      resOffsetHz: -300,
+      desc: '넥 포지션의 둥글고 따뜻한 저중음과 크리미한 리드 톤을 강조합니다.'
+    },
+    neck_mid: {
+      shortLabel: 'Neck+Mid',
+      label5: 'Pos 4 · Neck + Middle (하프톤)',
+      label3: 'Pos 4 · Neck + Middle',
+      defaultPickPos: 0.25,
+      midShiftHz: 420, midShiftDb: 1.0,
+      notchHz: 1280, notchDb: -7.5,
+      resOffsetHz: -100,
+      desc: '넥과 미들 픽업의 병렬 위상 간섭으로 1.3kHz 노치가 형성된 찰랑거리는 하프톤(Quack)입니다.'
+    },
+    middle: {
+      shortLabel: 'Mid / Both',
+      label5: 'Pos 3 · Middle (미들 단독)',
+      label3: 'Middle · Neck + Bridge (병렬)',
+      defaultPickPos: 0.20,
+      midShiftHz: 850, midShiftDb: 1.5,
+      notchHz: 1550, notchDb: -3.5,
+      resOffsetHz: 0,
+      desc: '균형 잡힌 미들 밸런스로 리듬 스트럼과 아르페지오에 잘 어울립니다.'
+    },
+    bridge_mid: {
+      shortLabel: 'Brg+Mid',
+      label5: 'Pos 2 · Bridge + Middle (하프톤)',
+      label3: 'Pos 2 · Bridge + Middle',
+      defaultPickPos: 0.16,
+      midShiftHz: 1900, midShiftDb: 1.8,
+      notchHz: 1420, notchDb: -8.0,
+      resOffsetHz: 180,
+      desc: '브릿지와 미들 픽업 조합 특유의 펑키하고 날카로운 콤 필터 하프톤입니다.'
+    },
+    bridge: {
+      shortLabel: 'Bridge',
+      label5: 'Pos 1 · Bridge (브릿지 단독)',
+      label3: 'Treble · Bridge (브릿지 단독)',
+      defaultPickPos: 0.11,
+      midShiftHz: 2750, midShiftDb: 3.2,
+      notchHz: 0, notchDb: 0,
+      resOffsetHz: 350,
+      desc: '브릿지 포지션의 타이트한 저역과 날카로운 어택으로 강렬한 리프와 솔로를 뚫고 나오게 합니다.'
+    }
+  };
+
+  /* =========================================================================
+   * 2. APPLICATION STATE & PRESETS
+   * ========================================================================= */
+  const STRING_NAMES = ['e', 'B', 'G', 'D', 'A', 'E'];
+  const STRING_MIDI  = [64, 59, 55, 50, 45, 40];
+  const STRING_WIRE  = [1, 1.2, 1.5, 2.0, 2.5, 3.2];
+  const EQ_FREQS     = [100, 320, 900, 2400, 6000];
+
+  const state = {
+    guitarType: 'lespaul',
+    pickupVoicing: 'humbucker',
+    pickupPos: 'bridge',
+    guitarTone: 8.5,
+    pickPosition: 0.12,
+    masterVol: 0.78,
+
+    drive:  { on: true,  type: 'metal',  gain: 78, tone: 62, level: 68 },
+    mod:    { on: false, type: 'chorus', rate: 32, depth: 45, mix: 40 },
+    eq:     { on: true,  bands: [3.5, -2.0, -5.5, 4.0, 2.5] },
+    delay:  { on: true,  time: 310, feedback: 28, mix: 20 },
+    reverb: { on: true,  decay: 38, damp: 45, mix: 22 },
+    amp:    { on: true,  type: 'recto', gain: 72, bass: 64, mid: 42, treble: 70 },
+
+    bpm: 124,
+    bars: 4,
+    loopStart: 0,
+    loopEnd: 3,
+    isPlaying: false,
+    currentStep: 0,
+    selectedString: 5,
+    selectedStep: 0,
+    pendingDigit: null,
+    pendingTimer: null,
+    clipboardBar: null,
+
+    grid: [],
+    pm: [],
+    barChords: [],
+
+    refBuffer: null,
+    regionStart: 0,
+    regionEnd: 1,
+    prevToneSnapshot: null,
+    prevTabSnapshot: null
+  };
+
+  const TONE_PRESETS = {
+    metalScoop: {
+      label: '90s 하이게인 메탈 (LP + Recto Scoop)',
+      guitarType: 'lespaul', pickupVoicing: 'high_humbucker', pickupPos: 'bridge',
+      guitarTone: 9.0, pickPosition: 0.11,
+      drive: { on: true, type: 'metal', gain: 78, tone: 62, level: 68 },
+      mod: { on: false, type: 'chorus', rate: 32, depth: 45, mix: 40 },
+      eq: { on: true, bands: [3.5, -2.0, -5.5, 4.0, 2.5] },
+      delay: { on: true, time: 310, feedback: 28, mix: 20 },
+      reverb: { on: true, decay: 38, damp: 45, mix: 22 },
+      amp: { on: true, type: 'recto', gain: 72, bass: 64, mid: 42, treble: 70 }
+    },
+    cleanChorus: {
+      label: '80s 스테레오 코러스 클린 (Strat Neck)',
+      guitarType: 'strat', pickupVoicing: 'single', pickupPos: 'neck',
+      guitarTone: 8.6, pickPosition: 0.28,
+      drive: { on: false, type: 'boost', gain: 20, tone: 60, level: 60 },
+      mod: { on: true, type: 'chorus', rate: 34, depth: 62, mix: 52 },
+      eq: { on: true, bands: [1.5, 0.0, -1.5, 2.5, 3.0] },
+      delay: { on: true, time: 380, feedback: 35, mix: 28 },
+      reverb: { on: true, decay: 60, damp: 35, mix: 34 },
+      amp: { on: true, type: 'clean', gain: 32, bass: 54, mid: 52, treble: 66 }
+    },
+    funkQuack: {
+      label: '펑키 스트랫 하프톤 (Pos 4 Quack)',
+      guitarType: 'strat', pickupVoicing: 'single', pickupPos: 'neck_mid',
+      guitarTone: 9.5, pickPosition: 0.24,
+      drive: { on: true, type: 'boost', gain: 28, tone: 68, level: 64 },
+      mod: { on: true, type: 'phaser', rate: 40, depth: 36, mix: 28 },
+      eq: { on: true, bands: [-1.0, 1.0, -2.5, 3.5, 2.5] },
+      delay: { on: false, time: 220, feedback: 20, mix: 14 },
+      reverb: { on: true, decay: 30, damp: 45, mix: 20 },
+      amp: { on: true, type: 'clean', gain: 36, bass: 48, mid: 55, treble: 74 }
+    },
+    bluesLead: {
+      label: '빈티지 블루스 크런치/리드 (Tele + Tweed)',
+      guitarType: 'tele', pickupVoicing: 'p90', pickupPos: 'bridge',
+      guitarTone: 8.0, pickPosition: 0.16,
+      drive: { on: true, type: 'tube', gain: 58, tone: 58, level: 66 },
+      mod: { on: false, type: 'tremolo', rate: 45, depth: 40, mix: 35 },
+      eq: { on: true, bands: [1.5, 2.5, 4.0, 2.0, -1.0] },
+      delay: { on: true, time: 300, feedback: 28, mix: 24 },
+      reverb: { on: true, decay: 44, damp: 48, mix: 26 },
+      amp: { on: true, type: 'tweed', gain: 60, bass: 58, mid: 65, treble: 60 }
+    },
+    classicRock: {
+      label: '브리티시 클래식 록 (LP + Plexi)',
+      guitarType: 'lespaul', pickupVoicing: 'humbucker', pickupPos: 'bridge',
+      guitarTone: 8.5, pickPosition: 0.14,
+      drive: { on: true, type: 'crunch', gain: 66, tone: 62, level: 68 },
+      mod: { on: false, type: 'chorus', rate: 25, depth: 30, mix: 25 },
+      eq: { on: true, bands: [2.0, 1.5, 2.5, 3.0, 1.5] },
+      delay: { on: true, time: 310, feedback: 25, mix: 18 },
+      reverb: { on: true, decay: 38, damp: 48, mix: 22 },
+      amp: { on: true, type: 'plexi', gain: 68, bass: 60, mid: 66, treble: 66 }
+    },
+    jazzHollow: {
+      label: '재즈 세미할로우 웜 클린 (ES-335)',
+      guitarType: 'hollow', pickupVoicing: 'humbucker', pickupPos: 'neck',
+      guitarTone: 5.5, pickPosition: 0.31,
+      drive: { on: false, type: 'tube', gain: 20, tone: 45, level: 60 },
+      mod: { on: false, type: 'chorus', rate: 25, depth: 30, mix: 25 },
+      eq: { on: true, bands: [2.5, 3.0, 1.0, -2.5, -4.5] },
+      delay: { on: true, time: 340, feedback: 24, mix: 18 },
+      reverb: { on: true, decay: 48, damp: 60, mix: 28 },
+      amp: { on: true, type: 'clean', gain: 28, bass: 62, mid: 58, treble: 44 }
+    },
+    acousticStrum: {
+      label: '드레드넛 어쿠스틱 피에조 스트럼',
+      guitarType: 'acoustic', pickupVoicing: 'piezo', pickupPos: 'middle',
+      guitarTone: 9.2, pickPosition: 0.23,
+      drive: { on: false, type: 'boost', gain: 15, tone: 60, level: 60 },
+      mod: { on: true, type: 'chorus', rate: 24, depth: 24, mix: 20 },
+      eq: { on: true, bands: [2.5, -1.5, -1.0, 2.5, 4.0] },
+      delay: { on: true, time: 330, feedback: 22, mix: 16 },
+      reverb: { on: true, decay: 46, damp: 35, mix: 28 },
+      amp: { on: false, type: 'clean', gain: 25, bass: 50, mid: 50, treble: 55 }
+    }
+  };
+
+  function applyTonePreset(key) {
+    const p = TONE_PRESETS[key];
+    if (!p) return;
+    state.guitarType = p.guitarType;
+    state.pickupVoicing = p.pickupVoicing;
+    state.pickupPos = p.pickupPos;
+    state.guitarTone = p.guitarTone;
+    state.pickPosition = p.pickPosition;
+    state.drive = { ...p.drive };
+    state.mod = { ...p.mod };
+    state.eq = { on: p.eq.on, bands: [...p.eq.bands] };
+    state.delay = { ...p.delay };
+    state.reverb = { ...p.reverb };
+    state.amp = { ...p.amp };
+
+    renderGuitarModelUI();
+    renderPedalboardControls();
+    updateDSPParameters();
+    showToast(`프리셋 적용됨: ${p.label}`);
+  }
+
+  /* =========================================================================
+   * 3. WEB AUDIO API SERIAL PEDALBOARD & PHYSICAL STRING SYNTHESIS ENGINE
+   * ========================================================================= */
+  let actx = null;
+  let guitarOutGain = null;
+  let driveDryGain = null, driveWetGain = null, driveInGain = null, driveShaper = null, driveToneFilter = null, driveOutGain = null;
+  let modDryGain = null, modWetGain = null, modDelayNode = null, modLfo = null, modLfoGain = null, modTremGain = null;
+  let eqFilters = [];
+  let delayDryGain = null, delayWetGain = null, delayNode = null, delayFeedbackGain = null, delayToneFilter = null;
+  let reverbDryGain = null, reverbWetGain = null, reverbConvolver = null, reverbDampFilter = null;
+  let lastReverbDecay = -1;
+  let ampDryGain = null, ampWetGain = null, ampPreGain = null, ampShaper = null;
+  let ampBassFilter = null, ampMidFilter = null, ampTrebleFilter = null, ampCabFilter = null, ampOutGain = null;
+  let masterGainNode = null;
+  let analyserNode = null;
+  let previewSourceNode = null;
+
+  function makeDistortionCurve(type, amount) {
+    const n = 2048;
+    const curve = new Float32Array(n);
+    const k = Math.max(1, amount);
+    for (let i = 0; i < n; i++) {
+      const x = (i * 2) / n - 1;
+      if (type === 'boost') {
+        curve[i] = Math.tanh(x * (1.2 + k * 0.025));
+      } else if (type === 'tube' || type === 'tweed') {
+        const asym = x >= 0 ? Math.tanh(x * (1.5 + k * 0.07)) : Math.tanh(x * (1.2 + k * 0.05));
+        curve[i] = asym;
+      } else if (type === 'crunch' || type === 'plexi') {
+        curve[i] = Math.tanh(x * (2.0 + k * 0.12));
+      } else if (type === 'dist') {
+        const s = x * (2.5 + k * 0.22);
+        curve[i] = Math.max(-0.88, Math.min(0.88, Math.tanh(s)));
+      } else if (type === 'metal' || type === 'recto') {
+        const s = x * (3.5 + k * 0.34);
+        curve[i] = Math.sign(s) * (1 - Math.exp(-Math.abs(s) * 1.4));
+      } else if (type === 'fuzz') {
+        const s = x * (4.0 + k * 0.45);
+        curve[i] = Math.sign(s) * Math.pow(1 - Math.exp(-Math.abs(s)), 0.65);
+      } else {
+        curve[i] = Math.tanh(x * 1.3);
+      }
+    }
+    return curve;
+  }
+
+  function buildImpulseResponse(ctx, decayPercent) {
+    const dur = 0.45 + (decayPercent / 100) * 2.8;
+    const rate = ctx.sampleRate;
+    const len = Math.floor(rate * dur);
+    const ir = ctx.createBuffer(2, len, rate);
+    for (let ch = 0; ch < 2; ch++) {
+      const d = ir.getChannelData(ch);
+      for (let i = 0; i < len; i++) {
+        const t = i / len;
+        const env = Math.pow(1 - t, 2.4);
+        d[i] = (Math.random() * 2 - 1) * env;
+      }
+    }
+    return ir;
+  }
+
+  function ensureAudio() {
+    if (!actx) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      actx = new AudioCtx();
+
+      guitarOutGain = actx.createGain();
+      guitarOutGain.gain.value = 1.0;
+
+      // Stage 1: Overdrive / Distortion
+      driveDryGain = actx.createGain();
+      driveWetGain = actx.createGain();
+      driveInGain = actx.createGain();
+      driveShaper = actx.createWaveShaper();
+      driveShaper.oversample = '4x';
+      driveToneFilter = actx.createBiquadFilter();
+      driveToneFilter.type = 'lowpass';
+      driveOutGain = actx.createGain();
+      const driveSum = actx.createGain();
+
+      guitarOutGain.connect(driveDryGain);
+      guitarOutGain.connect(driveInGain);
+      driveInGain.connect(driveShaper);
+      driveShaper.connect(driveToneFilter);
+      driveToneFilter.connect(driveOutGain);
+      driveOutGain.connect(driveWetGain);
+      driveDryGain.connect(driveSum);
+      driveWetGain.connect(driveSum);
+
+      // Stage 2: Modulation
+      modDryGain = actx.createGain();
+      modWetGain = actx.createGain();
+      modDelayNode = actx.createDelay(0.1);
+      modDelayNode.delayTime.value = 0.015;
+      modLfo = actx.createOscillator();
+      modLfoGain = actx.createGain();
+      modTremGain = actx.createGain();
+      modTremGain.gain.value = 1.0;
+      const modSum = actx.createGain();
+
+      modLfo.connect(modLfoGain);
+      modLfoGain.connect(modDelayNode.delayTime);
+      modLfo.start();
+
+      driveSum.connect(modDryGain);
+      driveSum.connect(modDelayNode);
+      modDelayNode.connect(modTremGain);
+      modTremGain.connect(modWetGain);
+      modDryGain.connect(modSum);
+      modWetGain.connect(modSum);
+
+      // Stage 3: 5-Band Graphic EQ
+      let prevEqNode = modSum;
+      eqFilters = EQ_FREQS.map((freq, idx) => {
+        const f = actx.createBiquadFilter();
+        f.type = idx === 0 ? 'lowshelf' : (idx === EQ_FREQS.length - 1 ? 'highshelf' : 'peaking');
+        f.frequency.value = freq;
+        f.Q.value = 1.4;
+        f.gain.value = 0;
+        prevEqNode.connect(f);
+        prevEqNode = f;
+        return f;
+      });
+
+      // Stage 4: Analog Delay
+      delayDryGain = actx.createGain();
+      delayWetGain = actx.createGain();
+      delayNode = actx.createDelay(2.0);
+      delayFeedbackGain = actx.createGain();
+      delayToneFilter = actx.createBiquadFilter();
+      delayToneFilter.type = 'lowpass';
+      delayToneFilter.frequency.value = 3200;
+      const delaySum = actx.createGain();
+
+      prevEqNode.connect(delayDryGain);
+      prevEqNode.connect(delayNode);
+      delayNode.connect(delayToneFilter);
+      delayToneFilter.connect(delayFeedbackGain);
+      delayFeedbackGain.connect(delayNode);
+      delayToneFilter.connect(delayWetGain);
+      delayDryGain.connect(delaySum);
+      delayWetGain.connect(delaySum);
+
+      // Stage 5: Studio Reverb
+      reverbDryGain = actx.createGain();
+      reverbWetGain = actx.createGain();
+      reverbConvolver = actx.createConvolver();
+      reverbDampFilter = actx.createBiquadFilter();
+      reverbDampFilter.type = 'lowpass';
+      const reverbSum = actx.createGain();
+
+      delaySum.connect(reverbDryGain);
+      delaySum.connect(reverbConvolver);
+      reverbConvolver.connect(reverbDampFilter);
+      reverbDampFilter.connect(reverbWetGain);
+      reverbDryGain.connect(reverbSum);
+      reverbWetGain.connect(reverbSum);
+
+      // Stage 6: 4x12 Tube Amp & Cabinet
+      ampDryGain = actx.createGain();
+      ampWetGain = actx.createGain();
+      ampPreGain = actx.createGain();
+      ampShaper = actx.createWaveShaper();
+      ampShaper.oversample = '4x';
+      ampBassFilter = actx.createBiquadFilter();
+      ampBassFilter.type = 'lowshelf';
+      ampBassFilter.frequency.value = 130;
+      ampMidFilter = actx.createBiquadFilter();
+      ampMidFilter.type = 'peaking';
+      ampMidFilter.frequency.value = 780;
+      ampMidFilter.Q.value = 1.1;
+      ampTrebleFilter = actx.createBiquadFilter();
+      ampTrebleFilter.type = 'highshelf';
+      ampTrebleFilter.frequency.value = 3200;
+      ampCabFilter = actx.createBiquadFilter();
+      ampCabFilter.type = 'lowpass';
+      ampCabFilter.Q.value = 0.85;
+      ampOutGain = actx.createGain();
+      const ampSum = actx.createGain();
+
+      reverbSum.connect(ampDryGain);
+      reverbSum.connect(ampPreGain);
+      ampPreGain.connect(ampShaper);
+      ampShaper.connect(ampBassFilter);
+      ampBassFilter.connect(ampMidFilter);
+      ampMidFilter.connect(ampTrebleFilter);
+      ampTrebleFilter.connect(ampCabFilter);
+      ampCabFilter.connect(ampOutGain);
+      ampOutGain.connect(ampWetGain);
+      ampDryGain.connect(ampSum);
+      ampWetGain.connect(ampSum);
+
+      // Master & Analyser
+      masterGainNode = actx.createGain();
+      analyserNode = actx.createAnalyser();
+      analyserNode.fftSize = 1024;
+
+      ampSum.connect(masterGainNode);
+      masterGainNode.connect(analyserNode);
+      analyserNode.connect(actx.destination);
+
+      updateDSPParameters();
+    }
+
+    if (actx.state === 'suspended') {
+      actx.resume();
+    }
+
+    const badge = document.getElementById('audioStatusBadge');
+    if (badge) {
+      badge.classList.add('active');
+      badge.textContent = `🔊 오디오 활성 (${Math.round(actx.sampleRate / 1000)}kHz DSP)`;
+    }
+  }
+
+  function updateDSPParameters() {
+    if (!actx || !guitarOutGain) return;
+    const now = actx.currentTime;
+
+    // 1. Drive
+    if (state.drive.on) {
+      driveDryGain.gain.setTargetAtTime(0, now, 0.015);
+      driveWetGain.gain.setTargetAtTime(1, now, 0.015);
+      driveInGain.gain.setTargetAtTime(1 + (state.drive.gain / 100) * 6.5, now, 0.015);
+      driveShaper.curve = makeDistortionCurve(state.drive.type, state.drive.gain);
+      driveToneFilter.frequency.setTargetAtTime(1100 + (state.drive.tone / 100) * 5800, now, 0.015);
+      driveOutGain.gain.setTargetAtTime(0.25 + (state.drive.level / 100) * 0.95, now, 0.015);
+    } else {
+      driveDryGain.gain.setTargetAtTime(1, now, 0.015);
+      driveWetGain.gain.setTargetAtTime(0, now, 0.015);
+    }
+
+    // 2. Modulation
+    if (state.mod.on) {
+      const mix = state.mod.mix / 100;
+      const rateHz = 0.25 + (state.mod.rate / 100) * 7.5;
+      const depthNorm = state.mod.depth / 100;
+      modLfo.frequency.setTargetAtTime(rateHz, now, 0.02);
+
+      if (state.mod.type === 'tremolo') {
+        modDryGain.gain.setTargetAtTime(1 - mix * 0.7, now, 0.02);
+        modWetGain.gain.setTargetAtTime(mix * 0.7, now, 0.02);
+        modDelayNode.delayTime.setTargetAtTime(0.002, now, 0.02);
+        modLfoGain.gain.setTargetAtTime(0.001 * depthNorm, now, 0.02);
+      } else if (state.mod.type === 'flanger') {
+        modDryGain.gain.setTargetAtTime(0.7, now, 0.02);
+        modWetGain.gain.setTargetAtTime(0.7 * mix, now, 0.02);
+        modDelayNode.delayTime.setTargetAtTime(0.004, now, 0.02);
+        modLfoGain.gain.setTargetAtTime(0.0028 * depthNorm, now, 0.02);
+      } else if (state.mod.type === 'vibrato') {
+        modDryGain.gain.setTargetAtTime(1 - mix, now, 0.02);
+        modWetGain.gain.setTargetAtTime(mix, now, 0.02);
+        modDelayNode.delayTime.setTargetAtTime(0.012, now, 0.02);
+        modLfoGain.gain.setTargetAtTime(0.0045 * depthNorm, now, 0.02);
+      } else {
+        // chorus / phaser / rotary
+        modDryGain.gain.setTargetAtTime(1 - mix * 0.45, now, 0.02);
+        modWetGain.gain.setTargetAtTime(mix * 0.85, now, 0.02);
+        modDelayNode.delayTime.setTargetAtTime(0.016, now, 0.02);
+        modLfoGain.gain.setTargetAtTime(0.0042 * depthNorm, now, 0.02);
+      }
+    } else {
+      modDryGain.gain.setTargetAtTime(1, now, 0.015);
+      modWetGain.gain.setTargetAtTime(0, now, 0.015);
+    }
+
+    // 3. 5-Band EQ
+    eqFilters.forEach((f, idx) => {
+      const db = state.eq.on ? (state.eq.bands[idx] || 0) : 0;
+      f.gain.setTargetAtTime(db, now, 0.015);
+    });
+
+    // 4. Analog Delay
+    if (state.delay.on) {
+      const mix = (state.delay.mix / 100) * 0.75;
+      delayDryGain.gain.setTargetAtTime(1, now, 0.015);
+      delayWetGain.gain.setTargetAtTime(mix, now, 0.015);
+      delayNode.delayTime.setTargetAtTime(Math.max(0.04, Math.min(1.5, state.delay.time / 1000)), now, 0.02);
+      delayFeedbackGain.gain.setTargetAtTime(Math.min(0.82, (state.delay.feedback / 100) * 0.82), now, 0.02);
+    } else {
+      delayDryGain.gain.setTargetAtTime(1, now, 0.015);
+      delayWetGain.gain.setTargetAtTime(0, now, 0.015);
+      delayFeedbackGain.gain.setTargetAtTime(0, now, 0.015);
+    }
+
+    // 5. Studio Reverb
+    if (state.reverb.on) {
+      const mix = (state.reverb.mix / 100) * 0.85;
+      reverbDryGain.gain.setTargetAtTime(1, now, 0.015);
+      reverbWetGain.gain.setTargetAtTime(mix, now, 0.015);
+      reverbDampFilter.frequency.setTargetAtTime(1400 + ((100 - state.reverb.damp) / 100) * 6500, now, 0.02);
+      if (Math.abs(state.reverb.decay - lastReverbDecay) >= 3) {
+        lastReverbDecay = state.reverb.decay;
+        reverbConvolver.buffer = buildImpulseResponse(actx, state.reverb.decay);
+      }
+    } else {
+      reverbDryGain.gain.setTargetAtTime(1, now, 0.015);
+      reverbWetGain.gain.setTargetAtTime(0, now, 0.015);
+    }
+
+    // 6. 4x12 Tube Amp & Cabinet
+    if (state.amp.on) {
+      ampDryGain.gain.setTargetAtTime(0, now, 0.015);
+      ampWetGain.gain.setTargetAtTime(1, now, 0.015);
+      const preMult = state.amp.type === 'clean' ? 1.1 + (state.amp.gain / 100) * 1.4
+                    : state.amp.type === 'recto' ? 1.8 + (state.amp.gain / 100) * 4.5
+                    : 1.4 + (state.amp.gain / 100) * 3.2;
+      ampPreGain.gain.setTargetAtTime(preMult, now, 0.015);
+      ampShaper.curve = makeDistortionCurve(state.amp.type, state.amp.gain);
+      ampBassFilter.gain.setTargetAtTime(((state.amp.bass - 50) / 50) * 8, now, 0.015);
+      ampMidFilter.gain.setTargetAtTime(((state.amp.mid - 50) / 50) * 8, now, 0.015);
+      ampTrebleFilter.gain.setTargetAtTime(((state.amp.treble - 50) / 50) * 8, now, 0.015);
+      const cabHz = state.amp.type === 'clean' ? 5400 : state.amp.type === 'recto' ? 4300 : 4700;
+      ampCabFilter.frequency.setTargetAtTime(cabHz, now, 0.015);
+      ampOutGain.gain.setTargetAtTime(0.68, now, 0.015);
+    } else {
+      ampDryGain.gain.setTargetAtTime(1, now, 0.015);
+      ampWetGain.gain.setTargetAtTime(0, now, 0.015);
+    }
+
+    masterGainNode.gain.setTargetAtTime(state.masterVol, now, 0.015);
+  }
+
+  function pluckString(stringIndex, fret, opts = {}) {
+    ensureAudio();
+    const model = GUITAR_MODELS[state.guitarType] || GUITAR_MODELS.lespaul;
+    const voicing = PICKUP_VOICINGS[state.pickupVoicing] || PICKUP_VOICINGS.humbucker;
+    const posCfg = PICKUP_POSITIONS[state.pickupPos] || PICKUP_POSITIONS.bridge;
+
+    const midi = STRING_MIDI[stringIndex] + (typeof fret === 'number' ? fret : 0);
+    const freq = 440 * Math.pow(2, (midi - 69) / 12);
+    const sr = actx.sampleRate;
+    const isDead = !!opts.deadNote;
+    const isPm = !!opts.palmMute;
+    const velocity = opts.velocity !== undefined ? opts.velocity : 0.9;
+    const delayOffset = opts.delayOffset || 0;
+
+    const durSec = isDead ? 0.09 : (isPm ? 0.34 : 2.1);
+    const len = Math.floor(sr * durSec);
+    const buf = actx.createBuffer(1, len, sr);
+    const out = buf.getChannelData(0);
+
+    if (isDead) {
+      for (let i = 0; i < len; i++) {
+        const env = Math.exp(-i / (sr * 0.016));
+        out[i] = (Math.random() * 2 - 1) * env * 0.65 * velocity;
+      }
+    } else {
+      const period = Math.max(8, Math.round(sr / freq));
+      const ring = new Float32Array(period);
+      const pickDelay = Math.max(1, Math.min(period - 1, Math.round(period * state.pickPosition)));
+
+      const excitation = new Float32Array(period);
+      for (let i = 0; i < period; i++) {
+        excitation[i] = (Math.random() * 2 - 1);
+      }
+      for (let i = 0; i < period; i++) {
+        const comb = excitation[i] - 0.72 * excitation[(i + pickDelay) % period];
+        ring[i] = comb * velocity;
+      }
+
+      const baseDecay = isPm ? 0.972 : model.decayFactor;
+      const dampMix = isPm ? 0.68 : (0.52 - model.pickBrightness * 0.14);
+      let idx = 0;
+      let prev = 0;
+
+      for (let i = 0; i < len; i++) {
+        const cur = ring[idx];
+        const nextIdx = (idx + 1) % period;
+        const avg = (1 - dampMix) * cur + dampMix * ring[nextIdx];
+        const filtered = 0.85 * avg + 0.15 * prev;
+        prev = filtered;
+        ring[idx] = filtered * baseDecay;
+        out[i] = cur * 0.75;
+        idx = nextIdx;
+      }
+    }
+
+    const src = actx.createBufferSource();
+    src.buffer = buf;
+
+    // Body resonance filters
+    const bodyLow = actx.createBiquadFilter();
+    bodyLow.type = 'peaking';
+    bodyLow.frequency.value = model.bodyLowHz;
+    bodyLow.Q.value = 1.6;
+    bodyLow.gain.value = model.bodyLowDb;
+
+    const bodyMid = actx.createBiquadFilter();
+    bodyMid.type = 'peaking';
+    bodyMid.frequency.value = model.bodyMidHz;
+    bodyMid.Q.value = 1.4;
+    bodyMid.gain.value = model.bodyMidDb;
+
+    const bodyHigh = actx.createBiquadFilter();
+    bodyHigh.type = 'highshelf';
+    bodyHigh.frequency.value = model.bodyHighHz;
+    bodyHigh.gain.value = model.bodyHighDb;
+
+    // Pickup position & coil resonance
+    const posMid = actx.createBiquadFilter();
+    posMid.type = 'peaking';
+    posMid.frequency.value = posCfg.midShiftHz;
+    posMid.Q.value = 1.3;
+    posMid.gain.value = posCfg.midShiftDb;
+
+    const posNotch = actx.createBiquadFilter();
+    posNotch.type = 'peaking';
+    posNotch.frequency.value = posCfg.notchHz || 1400;
+    posNotch.Q.value = 2.8;
+    posNotch.gain.value = posCfg.notchDb || 0;
+
+    const pickupRes = actx.createBiquadFilter();
+    pickupRes.type = 'peaking';
+    pickupRes.frequency.value = Math.max(800, voicing.resHz + posCfg.resOffsetHz);
+    pickupRes.Q.value = voicing.resQ;
+    pickupRes.gain.value = voicing.resDb;
+
+    const toneLpf = actx.createBiquadFilter();
+    toneLpf.type = 'lowpass';
+    const toneScale = 0.25 + (state.guitarTone / 10) * 0.75;
+    toneLpf.frequency.value = Math.min(9500, voicing.lpfHz * toneScale);
+
+    const pickupGain = actx.createGain();
+    pickupGain.gain.value = voicing.gain * (isPm ? 1.15 : 1.0);
+
+    src.connect(bodyLow);
+    bodyLow.connect(bodyMid);
+    bodyMid.connect(bodyHigh);
+    bodyHigh.connect(posMid);
+    posMid.connect(posNotch);
+    posNotch.connect(pickupRes);
+    pickupRes.connect(toneLpf);
+    toneLpf.connect(pickupGain);
+    pickupGain.connect(guitarOutGain);
+
+    src.start(actx.currentTime + delayOffset);
+
+    // Visual string vibration feedback
+    const strEl = document.querySelector(`#guitarSvgStage .svg-string-line[data-str="${stringIndex}"]`);
+    if (strEl) {
+      strEl.classList.remove('string-vibrating');
+      void strEl.offsetWidth;
+      strEl.classList.add('string-vibrating');
+    }
+  }
+
+  function playChordTest() {
+    ensureAudio();
+    const em9 = [2, 0, 0, 2, 2, 0];
+    [5, 4, 3, 2, 1, 0].forEach((s, i) => {
+      pluckString(s, em9[s], { velocity: 0.9, delayOffset: i * 0.028 });
+    });
+    showToast('코드 스트럼 테스트 (Em9) 연주됨');
+  }
+
+  function auditionOpenStrings() {
+    ensureAudio();
+    [5, 4, 3, 2, 1, 0].forEach((s, i) => {
+      pluckString(s, 0, { velocity: 0.88, delayOffset: i * 0.095 });
+    });
+    showToast('6현 개방현 아르페지오 시연');
+  }
+
+  /* =========================================================================
+   * 4. VISUAL GUITAR MODEL & INTERACTIVE PICKUP SELECTOR UI
+   * ========================================================================= */
+  function selectPickupPosition(pos, playDemo = false) {
+    if (!PICKUP_POSITIONS[pos]) return;
+    state.pickupPos = pos;
+    state.pickPosition = PICKUP_POSITIONS[pos].defaultPickPos;
+    renderGuitarModelUI();
+    updateDSPParameters();
+    const posCfg = PICKUP_POSITIONS[pos];
+    showToast(`픽업 셀렉터 전환: ${posCfg.shortLabel}`);
+    if (playDemo) {
+      pluckString(2, 0, { velocity: 0.82 });
+      pluckString(1, 0, { velocity: 0.82, delayOffset: 0.045 });
+    }
+  }
+
+  function renderGuitarModelUI() {
+    const model = GUITAR_MODELS[state.guitarType] || GUITAR_MODELS.lespaul;
+    const voicing = PICKUP_VOICINGS[state.pickupVoicing] || PICKUP_VOICINGS.humbucker;
+    const posCfg = PICKUP_POSITIONS[state.pickupPos] || PICKUP_POSITIONS.bridge;
+
+    // 1. Model Cards
+    const tabsWrap = document.getElementById('guitarModelTabs');
+    tabsWrap.innerHTML = '';
+    Object.entries(GUITAR_MODELS).forEach(([key, m]) => {
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.className = `gmodel-card ${state.guitarType === key ? 'active' : ''}`;
+      card.innerHTML = `
+        <div class="gmodel-card-top">
+          <span>${m.name}</span>
+          <span class="gmodel-tag">${m.tag}</span>
+        </div>
+        <div class="gmodel-card-sub">${m.sustainLabel}</div>
+      `;
+      card.onclick = () => {
+        state.guitarType = key;
+        state.pickupVoicing = m.defaultVoicing;
+        state.pickupPos = m.defaultPos;
+        state.pickPosition = PICKUP_POSITIONS[m.defaultPos].defaultPickPos;
+        renderGuitarModelUI();
+        updateDSPParameters();
+        showToast(`기타 모델 변경: ${m.name}`);
+      };
+      tabsWrap.appendChild(card);
+    });
+
+    // 2. Caption & Selects
+    document.getElementById('guitarVisualCaption').textContent = `${model.name} · ${model.finish}`;
+    document.getElementById('pickupVoicingSelect').value = state.pickupVoicing;
+
+    const allowedPositions = model.hasMiddlePickup
+      ? ['neck', 'neck_mid', 'middle', 'bridge_mid', 'bridge']
+      : ['neck', 'middle', 'bridge'];
+
+    if (!allowedPositions.includes(state.pickupPos)) {
+      state.pickupPos = allowedPositions[allowedPositions.length - 1];
+    }
+
+    const posSelect = document.getElementById('pickupPosSelect');
+    posSelect.innerHTML = '';
+    allowedPositions.forEach((pk) => {
+      const p = PICKUP_POSITIONS[pk];
+      const opt = document.createElement('option');
+      opt.value = pk;
+      opt.textContent = model.hasMiddlePickup ? p.label5 : p.label3;
+      posSelect.appendChild(opt);
+    });
+    posSelect.value = state.pickupPos;
+
+    // 3. Position Pills
+    const pillsWrap = document.getElementById('pickupPosPills');
+    pillsWrap.innerHTML = '';
+    allowedPositions.forEach((pk) => {
+      const p = PICKUP_POSITIONS[pk];
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = `pos-pill-btn ${state.pickupPos === pk ? 'active' : ''}`;
+      btn.textContent = p.shortLabel;
+      btn.onclick = () => selectPickupPosition(pk, true);
+      pillsWrap.appendChild(btn);
+    });
+
+    // 4. Spec Readout & Guitar Knobs
+    document.getElementById('pickupSpecTitle').textContent =
+      `${model.name} + ${voicing.name} (${posCfg.shortLabel})`;
+    document.getElementById('pickupSpecDesc').textContent = `${posCfg.desc} ${voicing.desc}`;
+    document.getElementById('pickupSpecMetrics').innerHTML = `
+      <span>출력: ${voicing.gainLabel}</span>
+      <span>· 공진: ${voicing.resHz + posCfg.resOffsetHz}Hz</span>
+      <span>· 바디: ${model.sustainLabel}</span>
+    `;
+
+    const gKnobs = document.getElementById('guitarKnobsWrap');
+    gKnobs.innerHTML = '';
+    gKnobs.appendChild(createKnobElement({
+      label: 'TONE',
+      min: 0, max: 10, step: 0.5, value: state.guitarTone, unit: '', small: true,
+      onChange: (v) => { state.guitarTone = v; }
+    }));
+    gKnobs.appendChild(createKnobElement({
+      label: 'PICK',
+      min: 5, max: 40, step: 1, value: Math.round(state.pickPosition * 100), unit: '%', small: true,
+      onChange: (v) => { state.pickPosition = v / 100; }
+    }));
+
+    // 5. Interactive SVG Guitar Stage
+    const svg = document.getElementById('guitarSvgStage');
+    const palettes = {
+      lespaul:    { c1: '#dc2626', c2: '#7f1d1d', stroke: '#fde68a', guard: '#fef3c7' },
+      strat:      { c1: '#d97706', c2: '#451a03', stroke: '#f59e0b', guard: '#f8fafc' },
+      tele:       { c1: '#fbbf24', c2: '#b45309', stroke: '#fde68a', guard: '#1e293b' },
+      superstrat: { c1: '#2563eb', c2: '#0f172a', stroke: '#38bdf8', guard: 'none' },
+      hollow:     { c1: '#be123c', c2: '#4c0519', stroke: '#fda4af', guard: '#18181b' },
+      acoustic:   { c1: '#f59e0b', c2: '#92400e', stroke: '#fef3c7', guard: '#451a03' }
+    };
+    const pal = palettes[state.guitarType] || palettes.lespaul;
+    const isHumbuckerStyle = ['humbucker', 'high_humbucker', 'active_emg'].includes(state.pickupVoicing);
+    const neckActive = state.pickupPos === 'neck' || state.pickupPos === 'neck_mid';
+    const midActive = state.pickupPos === 'middle' || state.pickupPos === 'neck_mid' || state.pickupPos === 'bridge_mid';
+    const brgActive = state.pickupPos === 'bridge' || state.pickupPos === 'bridge_mid';
+
+    const bodyPath = state.guitarType === 'acoustic'
+      ? 'M 105,36 C 155,22 215,52 248,66 C 282,52 342,20 392,42 C 425,58 425,162 392,178 C 342,200 282,168 248,154 C 215,168 155,198 105,184 C 68,170 68,50 105,36 Z'
+      : state.guitarType === 'hollow'
+      ? 'M 110,32 C 165,16 218,55 252,68 C 285,55 318,22 355,34 C 374,40 365,64 345,68 L 345,152 C 365,156 374,180 355,186 C 318,198 285,165 252,152 C 218,165 165,204 110,188 C 68,172 68,48 110,32 Z'
+      : (state.guitarType === 'strat' || state.guitarType === 'superstrat')
+      ? 'M 112,38 C 165,20 218,56 254,68 C 292,54 335,20 374,30 C 388,34 374,56 350,65 L 350,152 C 372,160 382,182 364,188 C 330,196 290,165 254,152 C 218,164 165,200 112,182 C 74,168 74,52 112,38 Z'
+      : 'M 112,36 C 168,18 220,56 254,68 C 292,54 334,26 364,44 C 378,52 362,68 346,72 L 346,150 C 368,158 378,182 356,190 C 322,200 286,164 254,152 C 220,164 168,202 112,184 C 74,168 74,52 112,36 Z';
+
+    const nextPosMap = model.hasMiddlePickup
+      ? { neck: 'neck_mid', neck_mid: 'middle', middle: 'bridge_mid', bridge_mid: 'bridge', bridge: 'neck' }
+      : { neck: 'middle', middle: 'bridge', bridge: 'neck' };
+    const nextPos = nextPosMap[state.pickupPos] || 'bridge';
+
+    let stringsMarkup = '';
+    for (let s = 0; s < 6; s++) {
+      const y = 85 + s * 10;
+      const strokeW = 1.0 + s * 0.35;
+      stringsMarkup += `
+        <line class="svg-string-line" data-str="${s}" x1="162" y1="${y}" x2="665" y2="${y}"
+              stroke="#e2e8f0" stroke-width="${strokeW}" stroke-opacity="0.88" />
+      `;
+    }
+
+    svg.innerHTML = `
+      <defs>
+        <radialGradient id="gBodyGrad" cx="42%" cy="48%" r="62%">
+          <stop offset="0%" stop-color="${pal.c1}" />
+          <stop offset="100%" stop-color="${pal.c2}" />
+        </radialGradient>
+      </defs>
+
+      <!-- Guitar Body -->
+      <path d="${bodyPath}" fill="url(#gBodyGrad)" stroke="${pal.stroke}" stroke-width="2" />
+
+      ${state.guitarType === 'acoustic' ? `
+        <circle cx="298" cy="110" r="34" fill="#090b10" stroke="#fde68a" stroke-width="3" />
+        <circle cx="298" cy="110" r="38" fill="none" stroke="#f59e0b" stroke-width="1" stroke-dasharray="3 2" />
+      ` : ''}
+
+      ${state.guitarType === 'hollow' ? `
+        <path d="M 195,52 C 215,44 245,46 265,54" fill="none" stroke="#090b10" stroke-width="4" stroke-linecap="round" />
+        <path d="M 195,168 C 215,176 245,174 265,166" fill="none" stroke="#090b10" stroke-width="4" stroke-linecap="round" />
+      ` : ''}
+
+      <!-- Neck & Fretboard -->
+      <rect x="342" y="80" width="328" height="60" rx="3" fill="#291d18" stroke="#451a03" stroke-width="1.5" />
+      ${[370, 405, 438, 469, 498, 525, 550, 574, 596, 616, 635, 652].map(fx =>
+        `<line x1="${fx}" y1="81" x2="${fx}" y2="139" stroke="#cbd5e1" stroke-width="1.4" stroke-opacity="0.65" />`
+      ).join('')}
+      ${[421, 483, 537, 585].map(dx =>
+        `<circle cx="${dx}" cy="110" r="3.2" fill="#f8fafc" fill-opacity="0.7" />`
+      ).join('')}
+
+      <!-- Bridge & Tailpiece -->
+      <rect x="152" y="78" width="14" height="64" rx="3" fill="#cbd5e1" stroke="#334155" stroke-width="1.2" />
+      <rect x="176" y="76" width="12" height="68" rx="2" fill="#e2e8f0" stroke="#334155" stroke-width="1.2" />
+
+      <!-- Bridge Pickup (Clickable) -->
+      <g id="svgPickupBridge" class="svg-pickup-hit" transform="translate(204, 75)">
+        <rect x="0" y="0" width="${isHumbuckerStyle ? 28 : 16}" height="70" rx="4"
+              fill="${brgActive ? '#0e7490' : '#1e293b'}"
+              stroke="${brgActive ? '#22d3ee' : '#64748b'}" stroke-width="2" />
+        <text x="${isHumbuckerStyle ? 14 : 8}" y="82" text-anchor="middle" fill="${brgActive ? '#67e8f9' : '#94a3b8'}" font-size="9" font-weight="800">BRG</text>
+      </g>
+
+      <!-- Middle Pickup (Clickable when SSS) -->
+      ${model.hasMiddlePickup ? `
+        <g id="svgPickupMid" class="svg-pickup-hit" transform="translate(256, 75)">
+          <rect x="0" y="0" width="16" height="70" rx="4"
+                fill="${midActive ? '#0e7490' : '#1e293b'}"
+                stroke="${midActive ? '#22d3ee' : '#64748b'}" stroke-width="2" />
+          <text x="8" y="82" text-anchor="middle" fill="${midActive ? '#67e8f9' : '#94a3b8'}" font-size="9" font-weight="800">MID</text>
+        </g>
+      ` : ''}
+
+      <!-- Neck Pickup (Clickable) -->
+      <g id="svgPickupNeck" class="svg-pickup-hit" transform="translate(302, 75)">
+        <rect x="0" y="0" width="${isHumbuckerStyle ? 28 : 16}" height="70" rx="4"
+              fill="${neckActive ? '#0e7490' : '#1e293b'}"
+              stroke="${neckActive ? '#22d3ee' : '#64748b'}" stroke-width="2" />
+        <text x="${isHumbuckerStyle ? 14 : 8}" y="82" text-anchor="middle" fill="${neckActive ? '#67e8f9' : '#94a3b8'}" font-size="9" font-weight="800">NECK</text>
+      </g>
+
+      <!-- Interactive Selector Switch -->
+      <g id="svgPickupSwitch" class="svg-pickup-hit" transform="translate(132, 148)">
+        <rect x="0" y="0" width="54" height="24" rx="6" fill="#0f172a" stroke="#f59e0b" stroke-width="1.5" />
+        <circle cx="${neckActive && !brgActive ? 14 : (brgActive && !neckActive ? 40 : 27)}" cy="12" r="6" fill="#fbbf24" />
+        <text x="27" y="34" text-anchor="middle" fill="#fde68a" font-size="9" font-weight="800">SW: ${posCfg.shortLabel}</text>
+      </g>
+
+      <!-- 6 Playable Strings -->
+      ${stringsMarkup}
+    `;
+
+    const elBrg = document.getElementById('svgPickupBridge');
+    if (elBrg) elBrg.onclick = () => selectPickupPosition('bridge', true);
+    const elMid = document.getElementById('svgPickupMid');
+    if (elMid) elMid.onclick = () => selectPickupPosition('middle', true);
+    const elNeck = document.getElementById('svgPickupNeck');
+    if (elNeck) elNeck.onclick = () => selectPickupPosition('neck', true);
+    const elSw = document.getElementById('svgPickupSwitch');
+    if (elSw) elSw.onclick = () => selectPickupPosition(nextPos, true);
+
+    svg.querySelectorAll('.svg-string-line').forEach((lineEl) => {
+      lineEl.addEventListener('click', () => {
+        const sIdx = parseInt(lineEl.dataset.str, 10);
+        pluckString(sIdx, 0, { velocity: 0.92 });
+      });
+    });
+  }
+
+  /* =========================================================================
+   * 5. ROTARY KNOBS & 6-STAGE PEDALBOARD CONTROLS
+   * ========================================================================= */
+  function createKnobElement({ label, min, max, step = 1, value, unit = '', small = false, onChange }) {
+    let curVal = value;
+    const wrap = document.createElement('div');
+    wrap.className = 'knob-unit';
+
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('viewBox', '0 0 44 44');
+    svg.setAttribute('class', `knob-svg ${small ? 'knob-sm' : ''}`);
+
+    const bgCircle = document.createElementNS(svgNS, 'circle');
+    bgCircle.setAttribute('cx', '22');
+    bgCircle.setAttribute('cy', '22');
+    bgCircle.setAttribute('r', '17');
+    bgCircle.setAttribute('fill', '#0f172a');
+    bgCircle.setAttribute('stroke', '#475569');
+    bgCircle.setAttribute('stroke-width', '2.5');
+
+    const pointer = document.createElementNS(svgNS, 'line');
+    pointer.setAttribute('x1', '22');
+    pointer.setAttribute('y1', '22');
+    pointer.setAttribute('x2', '22');
+    pointer.setAttribute('y2', '7');
+    pointer.setAttribute('stroke', '#f59e0b');
+    pointer.setAttribute('stroke-width', '2.8');
+    pointer.setAttribute('stroke-linecap', 'round');
+
+    svg.appendChild(bgCircle);
+    svg.appendChild(pointer);
+
+    const lblEl = document.createElement('div');
+    lblEl.className = 'knob-label';
+    lblEl.textContent = label;
+
+    const valEl = document.createElement('div');
+    valEl.className = 'knob-val';
+
+    function updateVisual(v) {
+      const clamped = Math.max(min, Math.min(max, v));
+      curVal = Math.round(clamped / step) * step;
+      if (step < 1) curVal = Math.round(curVal * 100) / 100;
+      const ratio = (curVal - min) / Math.max(1e-6, max - min);
+      const deg = -135 + ratio * 270;
+      pointer.setAttribute('transform', `rotate(${deg} 22 22)`);
+      valEl.textContent = `${curVal}${unit}`;
+    }
+
+    updateVisual(curVal);
+
+    let startY = 0;
+    let startVal = curVal;
+    const onMove = (e) => {
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      const delta = (startY - clientY) / 120;
+      const next = startVal + delta * (max - min);
+      updateVisual(next);
+      onChange(curVal);
+      updateDSPParameters();
+    };
+    const onUp = () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+      window.removeEventListener('touchmove', onMove);
+      window.removeEventListener('touchend', onUp);
+    };
+
+    wrap.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      startY = e.clientY;
+      startVal = curVal;
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('mouseup', onUp);
+    });
+
+    wrap.addEventListener('touchstart', (e) => {
+      startY = e.touches[0].clientY;
+      startVal = curVal;
+      window.addEventListener('touchmove', onMove, { passive: true });
+      window.addEventListener('touchend', onUp);
+    }, { passive: true });
+
+    wrap.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const dir = e.deltaY < 0 ? 1 : -1;
+      updateVisual(curVal + dir * step);
+      onChange(curVal);
+      updateDSPParameters();
+    }, { passive: false });
+
+    wrap.appendChild(svg);
+    wrap.appendChild(lblEl);
+    wrap.appendChild(valEl);
+    return wrap;
+  }
+
+  function renderPedalboardControls() {
+    // Master Knob
+    const masterWrap = document.getElementById('masterKnobWrap');
+    masterWrap.innerHTML = '';
+    masterWrap.appendChild(createKnobElement({
+      label: 'MASTER',
+      min: 0, max: 100, step: 1, value: Math.round(state.masterVol * 100), unit: '%', small: true,
+      onChange: (v) => { state.masterVol = v / 100; }
+    }));
+
+    // 1. Drive
+    document.getElementById('driveType').value = state.drive.type;
+    document.getElementById('ledDrive').classList.toggle('on', state.drive.on);
+    const dKnobs = document.getElementById('driveKnobs');
+    dKnobs.innerHTML = '';
+    dKnobs.appendChild(createKnobElement({ label: 'GAIN', min: 0, max: 100, value: state.drive.gain, onChange: v => { state.drive.gain = v; } }));
+    dKnobs.appendChild(createKnobElement({ label: 'TONE', min: 0, max: 100, value: state.drive.tone, onChange: v => { state.drive.tone = v; } }));
+    dKnobs.appendChild(createKnobElement({ label: 'LEVEL', min: 0, max: 100, value: state.drive.level, onChange: v => { state.drive.level = v; } }));
+
+    // 2. Modulation
+    document.getElementById('modType').value = state.mod.type;
+    document.getElementById('ledMod').classList.toggle('on', state.mod.on);
+    const mKnobs = document.getElementById('modKnobs');
+    mKnobs.innerHTML = '';
+    mKnobs.appendChild(createKnobElement({ label: 'RATE', min: 0, max: 100, value: state.mod.rate, onChange: v => { state.mod.rate = v; } }));
+    mKnobs.appendChild(createKnobElement({ label: 'DEPTH', min: 0, max: 100, value: state.mod.depth, onChange: v => { state.mod.depth = v; } }));
+    mKnobs.appendChild(createKnobElement({ label: 'MIX', min: 0, max: 100, value: state.mod.mix, onChange: v => { state.mod.mix = v; } }));
+
+    // 3. 5-Band EQ
+    document.getElementById('ledEq').classList.toggle('on', state.eq.on);
+    const eqWrap = document.getElementById('eqFadersWrap');
+    eqWrap.innerHTML = '';
+    EQ_FREQS.forEach((freq, idx) => {
+      const col = document.createElement('div');
+      col.className = 'eq-col';
+
+      const dbLabel = document.createElement('div');
+      dbLabel.className = 'eq-db';
+      const val = state.eq.bands[idx] || 0;
+      dbLabel.textContent = `${val > 0 ? '+' : ''}${val.toFixed(1)}`;
+
+      const sWrap = document.createElement('div');
+      sWrap.className = 'eq-slider-wrap';
+      const slider = document.createElement('input');
+      slider.type = 'range';
+      slider.className = 'eq-vslider';
+      slider.min = '-10';
+      slider.max = '10';
+      slider.step = '0.5';
+      slider.value = val;
+      slider.addEventListener('input', (e) => {
+        const nv = parseFloat(e.target.value);
+        state.eq.bands[idx] = nv;
+        dbLabel.textContent = `${nv > 0 ? '+' : ''}${nv.toFixed(1)}`;
+        updateDSPParameters();
+      });
+      sWrap.appendChild(slider);
+
+      const fLabel = document.createElement('div');
+      fLabel.className = 'eq-freq';
+      fLabel.textContent = freq >= 1000 ? `${(freq / 1000).toFixed(1)}k` : `${freq}`;
+
+      col.appendChild(dbLabel);
+      col.appendChild(sWrap);
+      col.appendChild(fLabel);
+      eqWrap.appendChild(col);
+    });
+
+    // 4. Delay
+    document.getElementById('ledDelay').classList.toggle('on', state.delay.on);
+    const delKnobs = document.getElementById('delayKnobs');
+    delKnobs.innerHTML = '';
+    delKnobs.appendChild(createKnobElement({ label: 'TIME', min: 50, max: 1000, step: 10, value: state.delay.time, unit: 'ms', onChange: v => { state.delay.time = v; } }));
+    delKnobs.appendChild(createKnobElement({ label: 'F.BACK', min: 0, max: 90, value: state.delay.feedback, onChange: v => { state.delay.feedback = v; } }));
+    delKnobs.appendChild(createKnobElement({ label: 'MIX', min: 0, max: 100, value: state.delay.mix, onChange: v => { state.delay.mix = v; } }));
+
+    // 5. Reverb
+    document.getElementById('ledReverb').classList.toggle('on', state.reverb.on);
+    const revKnobs = document.getElementById('reverbKnobs');
+    revKnobs.innerHTML = '';
+    revKnobs.appendChild(createKnobElement({ label: 'DECAY', min: 0, max: 100, value: state.reverb.decay, onChange: v => { state.reverb.decay = v; } }));
+    revKnobs.appendChild(createKnobElement({ label: 'DAMP', min: 0, max: 100, value: state.reverb.damp, onChange: v => { state.reverb.damp = v; } }));
+    revKnobs.appendChild(createKnobElement({ label: 'MIX', min: 0, max: 100, value: state.reverb.mix, onChange: v => { state.reverb.mix = v; } }));
+
+    // 6. 4x12 Amp
+    document.getElementById('ampType').value = state.amp.type;
+    document.getElementById('ledAmp').classList.toggle('on', state.amp.on);
+    const aKnobs = document.getElementById('ampKnobs');
+    aKnobs.innerHTML = '';
+    aKnobs.appendChild(createKnobElement({ label: 'GAIN', min: 0, max: 100, value: state.amp.gain, small: true, onChange: v => { state.amp.gain = v; } }));
+    aKnobs.appendChild(createKnobElement({ label: 'BASS', min: 0, max: 100, value: state.amp.bass, small: true, onChange: v => { state.amp.bass = v; } }));
+    aKnobs.appendChild(createKnobElement({ label: 'MID', min: 0, max: 100, value: state.amp.mid, small: true, onChange: v => { state.amp.mid = v; } }));
+    aKnobs.appendChild(createKnobElement({ label: 'TREBLE', min: 0, max: 100, value: state.amp.treble, small: true, onChange: v => { state.amp.treble = v; } }));
+  }
+
+  /* =========================================================================
+   * 6. DEMO RIFFS & TAB SEQUENCER GRID
+   * ========================================================================= */
+  const DEMO_RIFFS = {
+    metalRiff: {
+      bpm: 128,
+      bars: 4,
+      chords: ['E5', 'E5', 'G5', 'A#5'],
+      build: () => {
+        const steps = 64;
+        const g = Array.from({ length: 6 }, () => Array(steps).fill(null));
+        const pm = Array(steps).fill(false);
+        const pattern = [
+          [0, 5, 0, true], [0, 4, 2, true],
+          [1, 5, 0, true], [2, 5, 0, true],
+          [3, 5, 0, false], [3, 4, 2, false],
+          [5, 5, 0, true], [6, 5, 0, true],
+          [7, 5, 3, false], [7, 4, 5, false],
+          [9, 5, 0, true], [10, 5, 0, true],
+          [11, 5, 6, false], [11, 4, 8, false],
+          [13, 5, 5, false], [13, 4, 7, false],
+          [15, 5, 0, true]
+        ];
+        for (let bar = 0; bar < 4; bar++) {
+          const offset = bar * 16;
+          pattern.forEach(([s, str, fret, isPm]) => {
+            g[str][offset + s] = fret;
+            if (isPm) pm[offset + s] = true;
+          });
+          if (bar === 3) {
+            g[4][offset + 12] = 7; g[4][offset + 13] = 5;
+            g[5][offset + 14] = 6; g[5][offset + 15] = 3;
+            pm[offset + 15] = false;
+          }
+        }
+        return { g, pm };
+      }
+    },
+    cleanArp: {
+      bpm: 102,
+      bars: 4,
+      chords: ['Em', 'C', 'G', 'D'],
+      build: () => {
+        const steps = 64;
+        const g = Array.from({ length: 6 }, () => Array(steps).fill(null));
+        const pm = Array(steps).fill(false);
+        const chords = [
+          [[5,0],[4,2],[3,4],[2,0],[1,3],[0,2],[1,3],[2,0]],
+          [[4,3],[3,2],[2,0],[1,0],[0,0],[1,0],[2,0],[3,2]],
+          [[5,3],[4,2],[3,0],[2,0],[1,0],[0,0],[1,0],[2,0]],
+          [[3,0],[2,2],[1,3],[0,0],[1,3],[2,2],[0,2],[0,0]]
+        ];
+        chords.forEach((arp, bar) => {
+          arp.forEach(([str, fret], idx) => {
+            g[str][bar * 16 + idx * 2] = fret;
+          });
+        });
+        return { g, pm };
+      }
+    },
+    funkQuack: {
+      bpm: 112,
+      bars: 4,
+      chords: ['E7', 'E7', 'A7', 'E7'],
+      build: () => {
+        const steps = 64;
+        const g = Array.from({ length: 6 }, () => Array(steps).fill(null));
+        const pm = Array(steps).fill(false);
+        for (let bar = 0; bar < 4; bar++) {
+          const o = bar * 16;
+          g[2][o+0] = 7; g[1][o+0] = 7; g[0][o+0] = 7;
+          g[2][o+2] = 'X'; g[1][o+2] = 'X';
+          g[2][o+3] = 7; g[1][o+3] = 7; g[0][o+3] = 7;
+          g[2][o+5] = 'X'; g[1][o+5] = 'X';
+          g[2][o+6] = 9; g[1][o+6] = 9; g[0][o+6] = 9;
+          g[4][o+8] = 7;
+          g[2][o+10] = 'X'; g[1][o+10] = 'X';
+          g[2][o+12] = 7; g[1][o+12] = 8; g[0][o+12] = 9;
+          g[4][o+14] = 5; g[4][o+15] = 6;
+        }
+        return { g, pm };
+      }
+    },
+    bluesLead: {
+      bpm: 96,
+      bars: 4,
+      chords: ['E7', 'A7', 'E7', 'B7'],
+      build: () => {
+        const steps = 64;
+        const g = Array.from({ length: 6 }, () => Array(steps).fill(null));
+        const pm = Array(steps).fill(false);
+        const lick = [
+          [0, 3, 12], [2, 2, 14], [4, 1, 12], [6, 1, 15],
+          [8, 0, 12], [10, 0, 15], [12, 0, 17], [14, 0, 15],
+          [16, 1, 15], [18, 1, 12], [20, 2, 14], [22, 2, 12],
+          [24, 3, 14], [28, 3, 12],
+          [32, 4, 14], [34, 3, 12], [36, 3, 14], [38, 2, 12],
+          [40, 2, 14], [42, 1, 12], [44, 1, 15], [46, 0, 12],
+          [48, 0, 15], [52, 0, 17], [56, 0, 19], [60, 0, 17]
+        ];
+        lick.forEach(([st, str, fr]) => { g[str][st] = fr; });
+        return { g, pm };
+      }
+    }
+  };
+
+  function loadDemoRiff(key) {
+    const riff = DEMO_RIFFS[key] || DEMO_RIFFS.metalRiff;
+    state.bpm = riff.bpm;
+    state.bars = riff.bars;
+    state.loopStart = 0;
+    state.loopEnd = riff.bars - 1;
+    const built = riff.build();
+    state.grid = built.g;
+    state.pm = built.pm;
+    state.barChords = riff.chords ? [...riff.chords] : Array(riff.bars).fill(null);
+    document.getElementById('bpmInput').value = state.bpm;
+    updateLoopSelectors();
+    renderTabGrid();
+  }
+
+  function updateLoopSelectors() {
+    const ls = document.getElementById('loopStartSelect');
+    const le = document.getElementById('loopEndSelect');
+    ls.innerHTML = '';
+    le.innerHTML = '';
+    for (let b = 0; b < state.bars; b++) {
+      const o1 = document.createElement('option');
+      o1.value = b;
+      o1.textContent = `${b + 1}마디`;
+      ls.appendChild(o1);
+
+      const o2 = document.createElement('option');
+      o2.value = b;
+      o2.textContent = `${b + 1}마디`;
+      le.appendChild(o2);
+    }
+    state.loopStart = Math.min(state.loopStart, state.bars - 1);
+    state.loopEnd = Math.max(state.loopStart, Math.min(state.loopEnd, state.bars - 1));
+    ls.value = state.loopStart;
+    le.value = state.loopEnd;
+  }
+
+  function renderTabGrid() {
+    const table = document.getElementById('tabGridTable');
+    table.innerHTML = '';
+    const totalSteps = state.bars * 16;
+
+    const headerRow = document.createElement('div');
+    headerRow.className = 'tab-bar-headers-row';
+
+    const corner = document.createElement('div');
+    corner.className = 'sticky-corner';
+    corner.textContent = 'STRING';
+    headerRow.appendChild(corner);
+
+    for (let b = 0; b < state.bars; b++) {
+      const inLoop = b >= state.loopStart && b <= state.loopEnd;
+      const block = document.createElement('div');
+      block.className = `bar-header-block ${inLoop ? 'in-loop' : 'out-loop'}`;
+
+      const title = document.createElement('div');
+      title.className = 'bar-title';
+      title.innerHTML = `<span>BAR ${b + 1}</span>` + (inLoop ? `<span class="loop-pill">LOOP</span>` : '');
+
+      const barChord = state.barChords[b];
+      if (barChord) {
+        const cPill = document.createElement('span');
+        cPill.className = 'chord-pill';
+        cPill.textContent = barChord;
+        cPill.title = `${barChord} 코드 소리 미리듣기`;
+        cPill.onclick = () => {
+          const voicing = getChordVoicing(barChord, 'low');
+          [5, 4, 3, 2, 1, 0].forEach((strIdx, order) => {
+            if (voicing[strIdx] !== null && voicing[strIdx] !== undefined) {
+              pluckString(strIdx, voicing[strIdx], { velocity: 0.88, delayOffset: order * 0.03 });
+            }
+          });
+          showToast(`${b + 1}마디 코드 시연: ${barChord}`);
+        };
+        title.appendChild(cPill);
+      }
+
+      const btns = document.createElement('div');
+      btns.className = 'bar-mini-btns';
+
+      const btnCopy = document.createElement('button');
+      btnCopy.className = 'mini-chip';
+      btnCopy.textContent = '복사';
+      btnCopy.onclick = () => {
+        state.clipboardBar = {
+          g: state.grid.map(row => row.slice(b * 16, (b + 1) * 16)),
+          pm: state.pm.slice(b * 16, (b + 1) * 16)
+        };
+        showToast(`${b + 1}마디 복사됨`);
+      };
+
+      const btnPaste = document.createElement('button');
+      btnPaste.className = 'mini-chip';
+      btnPaste.textContent = '붙여넣기';
+      btnPaste.onclick = () => {
+        if (!state.clipboardBar) return showToast('복사된 마디가 없습니다');
+        for (let s = 0; s < 6; s++) {
+          for (let i = 0; i < 16; i++) {
+            state.grid[s][b * 16 + i] = state.clipboardBar.g[s][i];
+          }
+        }
+        for (let i = 0; i < 16; i++) {
+          state.pm[b * 16 + i] = state.clipboardBar.pm[i];
+        }
+        renderTabGrid();
+        showToast(`${b + 1}마디에 붙여넣기 완료`);
+      };
+
+      const btnClr = document.createElement('button');
+      btnClr.className = 'mini-chip';
+      btnClr.textContent = '비우기';
+      btnClr.onclick = () => {
+        for (let s = 0; s < 6; s++) {
+          for (let i = 0; i < 16; i++) state.grid[s][b * 16 + i] = null;
+        }
+        for (let i = 0; i < 16; i++) state.pm[b * 16 + i] = false;
+        renderTabGrid();
+      };
+
+      btns.appendChild(btnCopy);
+      btns.appendChild(btnPaste);
+      btns.appendChild(btnClr);
+
+      block.appendChild(title);
+      block.appendChild(btns);
+      headerRow.appendChild(block);
+    }
+    table.appendChild(headerRow);
+
+    const pmRow = document.createElement('div');
+    pmRow.className = 'tab-row';
+    const pmLabel = document.createElement('div');
+    pmLabel.className = 'sticky-string-label pm-label';
+    pmLabel.textContent = 'P.MUTE';
+    pmRow.appendChild(pmLabel);
+
+    for (let step = 0; step < totalSteps; step++) {
+      const cell = document.createElement('div');
+      cell.className = 'tab-cell pm-cell';
+      if (step % 4 === 0) cell.classList.add('beat-start');
+      if ((step + 1) % 16 === 0) cell.classList.add('bar-end');
+      cell.dataset.step = step;
+      cell.textContent = state.pm[step] ? 'P.M.' : '·';
+      cell.onclick = () => {
+        state.pm[step] = !state.pm[step];
+        renderTabGrid();
+      };
+      pmRow.appendChild(cell);
+    }
+    table.appendChild(pmRow);
+
+    for (let s = 0; s < 6; s++) {
+      const row = document.createElement('div');
+      row.className = 'tab-row';
+
+      const sLabel = document.createElement('div');
+      sLabel.className = 'sticky-string-label';
+      sLabel.title = '클릭하여 개방현 소리 듣기';
+      sLabel.innerHTML = `<span style="color:var(--amber);">${STRING_NAMES[s]}</span><span style="font-size:10px;color:var(--text-dim);">${6 - s}현</span>`;
+      sLabel.onclick = () => pluckString(s, 0);
+      row.appendChild(sLabel);
+
+      for (let step = 0; step < totalSteps; step++) {
+        const cell = document.createElement('div');
+        cell.className = 'tab-cell string-cell';
+        cell.style.setProperty('--wire-h', `${STRING_WIRE[s]}px`);
+        if (step % 4 === 0) cell.classList.add('beat-start');
+        if ((step + 1) % 16 === 0) cell.classList.add('bar-end');
+        if (state.selectedString === s && state.selectedStep === step) {
+          cell.classList.add('selected');
+        }
+        cell.dataset.str = s;
+        cell.dataset.step = step;
+
+        const val = state.grid[s][step];
+        if (val !== null && val !== undefined) {
+          const pill = document.createElement('span');
+          pill.className = 'note-pill';
+          if (val === 'X') pill.classList.add('dead-note');
+          else if (state.pm[step]) pill.classList.add('pm-note');
+          pill.textContent = val;
+          cell.appendChild(pill);
+        }
+
+        cell.onclick = () => {
+          state.selectedString = s;
+          state.selectedStep = step;
+          if (val !== null) {
+            pluckString(s, val === 'X' ? 0 : val, { palmMute: state.pm[step], deadNote: val === 'X' });
+          }
+          renderTabGrid();
+        };
+
+        row.appendChild(cell);
+      }
+      table.appendChild(row);
+    }
+  }
+
+  function setCellNote(val) {
+    const s = state.selectedString;
+    const st = state.selectedStep;
+    state.grid[s][st] = val;
+    if (val !== null) {
+      pluckString(s, val === 'X' ? 0 : val, { palmMute: state.pm[st], deadNote: val === 'X' });
+    }
+    renderTabGrid();
+  }
+
+  /* =========================================================================
+   * 8. SEQUENCER PLAYBACK ENGINE
+   * ========================================================================= */
+  let seqTimer = null;
+
+  function triggerStep(step) {
+    for (let s = 0; s < 6; s++) {
+      const val = state.grid[s][step];
+      if (val !== null && val !== undefined) {
+        pluckString(s, val === 'X' ? 0 : val, {
+          palmMute: state.pm[step],
+          deadNote: val === 'X',
+          velocity: 0.9
+        });
+      }
+    }
+
+    document.querySelectorAll('.tab-cell.playing-step').forEach(el => el.classList.remove('playing-step'));
+    document.querySelectorAll(`.tab-cell[data-step="${step}"]`).forEach(el => el.classList.add('playing-step'));
+  }
+
+  function startPlayback() {
+    ensureAudio();
+    if (state.isPlaying) return;
+    state.isPlaying = true;
+    document.getElementById('btnPlayStop').textContent = '⏸ 일시정지 (Space)';
+
+    const loopStartStep = state.loopStart * 16;
+    const loopEndStep = (state.loopEnd + 1) * 16 - 1;
+    if (state.currentStep < loopStartStep || state.currentStep > loopEndStep) {
+      state.currentStep = loopStartStep;
+    }
+
+    const stepMs = (60 / state.bpm / 4) * 1000;
+    triggerStep(state.currentStep);
+
+    seqTimer = setInterval(() => {
+      state.currentStep++;
+      const lStart = state.loopStart * 16;
+      const lEnd = (state.loopEnd + 1) * 16 - 1;
+      if (state.currentStep > lEnd) {
+        state.currentStep = lStart;
+      }
+      triggerStep(state.currentStep);
+    }, stepMs);
+  }
+
+  function pausePlayback() {
+    state.isPlaying = false;
+    clearInterval(seqTimer);
+    document.getElementById('btnPlayStop').textContent = '▶ 재생 (Space)';
+  }
+
+  function stopPlayback() {
+    pausePlayback();
+    state.currentStep = state.loopStart * 16;
+    document.querySelectorAll('.tab-cell.playing-step').forEach(el => el.classList.remove('playing-step'));
+  }
+
+  /* =========================================================================
+   * 9. AI AUDIO TONE MATCHER & POLYPHONIC STRUM/RIFF TAB TRANSCRIBER
+   * ========================================================================= */
+  const FFT_CACHE = {};
+  function getHannWindow(size) {
+    if (!FFT_CACHE[size]) {
+      const win = new Float32Array(size);
+      for (let i = 0; i < size; i++) {
+        win[i] = 0.5 * (1 - Math.cos((2 * Math.PI * i) / (size - 1)));
+      }
+      FFT_CACHE[size] = win;
+    }
+    return FFT_CACHE[size];
+  }
+
+  function computeMagSpectrum(samples, fftSize) {
+    const re = new Float32Array(fftSize);
+    const im = new Float32Array(fftSize);
+    const win = getHannWindow(fftSize);
+    const copyLen = Math.min(samples.length, fftSize);
+    for (let i = 0; i < copyLen; i++) {
+      re[i] = samples[i] * win[i];
+    }
+
+    let j = 0;
+    for (let i = 0; i < fftSize; i++) {
+      if (i < j) {
+        const tr = re[i]; re[i] = re[j]; re[j] = tr;
+      }
+      let m = fftSize >> 1;
+      while (m >= 1 && j >= m) {
+        j -= m;
+        m >>= 1;
+      }
+      j += m;
+    }
+
+    for (let len = 2; len <= fftSize; len <<= 1) {
+      const half = len >> 1;
+      const angle = (-2 * Math.PI) / len;
+      const wStepRe = Math.cos(angle);
+      const wStepIm = Math.sin(angle);
+      for (let i = 0; i < fftSize; i += len) {
+        let wRe = 1;
+        let wIm = 0;
+        for (let k = 0; k < half; k++) {
+          const evenIdx = i + k;
+          const oddIdx = evenIdx + half;
+          const tRe = wRe * re[oddIdx] - wIm * im[oddIdx];
+          const tIm = wRe * im[oddIdx] + wIm * re[oddIdx];
+          re[oddIdx] = re[evenIdx] - tRe;
+          im[oddIdx] = im[evenIdx] - tIm;
+          re[evenIdx] += tRe;
+          im[evenIdx] += tIm;
+          const nextWRe = wRe * wStepRe - wIm * wStepIm;
+          wIm = wRe * wStepIm + wIm * wStepRe;
+          wRe = nextWRe;
+        }
+      }
+    }
+
+    const halfBins = fftSize >> 1;
+    const mag = new Float32Array(halfBins);
+    for (let i = 0; i < halfBins; i++) {
+      mag[i] = Math.hypot(re[i], im[i]) / fftSize;
+    }
+    return mag;
+  }
+
+  function extractMonoAndStereoStats(audioBuffer, startRatio, endRatio) {
+    const chCount = audioBuffer.numberOfChannels;
+    const totalLen = audioBuffer.length;
+    const i0 = Math.max(0, Math.floor(startRatio * totalLen));
+    const i1 = Math.min(totalLen, Math.max(i0 + 1024, Math.floor(endRatio * totalLen)));
+    const len = i1 - i0;
+    const mono = new Float32Array(len);
+
+    if (chCount === 1) {
+      mono.set(audioBuffer.getChannelData(0).subarray(i0, i1));
+      return { mono, stereoWidth: 0 };
+    }
+
+    const chL = audioBuffer.getChannelData(0);
+    const chR = audioBuffer.getChannelData(1);
+    let midSq = 0;
+    let sideSq = 0;
+    for (let i = 0; i < len; i++) {
+      const l = chL[i0 + i];
+      const r = chR[i0 + i];
+      const m = 0.5 * (l + r);
+      const s = 0.5 * (l - r);
+      mono[i] = m;
+      midSq += m * m;
+      sideSq += s * s;
+    }
+    const stereoWidth = Math.min(1, Math.sqrt(sideSq / (midSq + 1e-9)));
+    return { mono, stereoWidth };
+  }
+
+  function buildBuiltInRefBuffer(type) {
+    const sr = 44100;
+    const sec = 4.0;
+    const len = sr * sec;
+    const buf = new AudioBuffer({ length: len, numberOfChannels: 2, sampleRate: sr });
+    const dataL = buf.getChannelData(0);
+    const dataR = buf.getChannelData(1);
+
+    if (type === 'strumChord') {
+      const prog = [
+        [82.41, 123.47, 164.81, 196.00, 246.94, 329.63], // Em
+        [130.81, 164.81, 196.00, 261.63, 329.63],        // C
+        [98.00, 123.47, 146.83, 196.00, 246.94, 392.00], // G
+        [146.83, 220.00, 293.66, 369.99]                 // D
+      ];
+      const strumPat = [
+        [0, true, false, 1.0],
+        [3, true, false, 0.72],
+        [4, false, true, 0.65],
+        [6, false, false, 0.85],
+        [8, true, false, 0.92],
+        [10, false, false, 0.78],
+        [12, false, true, 0.65],
+        [14, true, false, 0.88]
+      ];
+      const stepSamples = Math.floor(len / 64);
+
+      for (let bar = 0; bar < 4; bar++) {
+        const chord = prog[bar];
+        strumPat.forEach(([st, isDown, isMute, vel]) => {
+          const onset = (bar * 16 + st) * stepSamples;
+          const durSamples = Math.min(len - onset, isMute ? Math.floor(sr * 0.08) : Math.floor(sr * 0.85));
+          const ordered = isDown ? chord : [...chord].reverse();
+
+          for (let i = 0; i < durSamples; i++) {
+            const t = i / sr;
+            let sample = 0;
+            if (isMute) {
+              const noise = (Math.random() * 2 - 1) * Math.exp(-t * 55);
+              sample = noise * 0.55;
+            } else {
+              for (let sIdx = 0; sIdx < ordered.length; sIdx++) {
+                const stagger = sIdx * 0.0055;
+                if (t >= stagger) {
+                  const lt = t - stagger;
+                  const f = ordered[sIdx];
+                  const env = Math.exp(-lt * 3.1);
+                  const strSig = (
+                    Math.sin(2 * Math.PI * f * lt) * 0.55 +
+                    Math.sin(2 * Math.PI * f * 2 * lt) * 0.28 +
+                    Math.sin(2 * Math.PI * f * 3 * lt) * 0.14 +
+                    Math.sin(2 * Math.PI * f * 4 * lt) * 0.08
+                  ) * env;
+                  sample += strSig;
+                }
+              }
+              sample = (sample / ordered.length) * 1.45;
+            }
+            dataL[onset + i] += sample * vel * 0.75;
+            dataR[onset + i] += sample * vel * 0.72;
+          }
+        });
+      }
+    } else if (type === 'cleanChorus') {
+      const notes = [164.81, 246.94, 369.99, 392.00, 329.63, 246.94, 196.00, 293.66];
+      const stepSamples = Math.floor(len / 16);
+      for (let i = 0; i < len; i++) {
+        const idx = Math.floor(i / stepSamples) % notes.length;
+        const localT = (i % stepSamples) / sr;
+        const f = notes[idx];
+        const env = Math.exp(-localT * 4.2);
+        const modL = 1 + 0.0045 * Math.sin(2 * Math.PI * 1.6 * (i / sr));
+        const modR = 1 + 0.0045 * Math.cos(2 * Math.PI * 1.6 * (i / sr));
+        const sigL = (Math.sin(2 * Math.PI * f * modL * (i / sr)) * 0.65 +
+                      Math.sin(2 * Math.PI * f * 2 * (i / sr)) * 0.25) * env;
+        const sigR = (Math.sin(2 * Math.PI * f * modR * (i / sr)) * 0.65 +
+                      Math.sin(2 * Math.PI * f * 2 * (i / sr)) * 0.25) * env;
+        dataL[i] = sigL * 0.6;
+        dataR[i] = sigR * 0.6;
+      }
+    } else if (type === 'metalScoop') {
+      const notes = [82.41, 82.41, 82.41, 98.00, 82.41, 82.41, 116.54, 110.00];
+      const stepSamples = Math.floor(len / 16);
+      for (let i = 0; i < len; i++) {
+        const idx = Math.floor(i / stepSamples) % notes.length;
+        const localT = (i % stepSamples) / sr;
+        const f = notes[idx];
+        const env = Math.exp(-localT * 7.5);
+        const raw = Math.sin(2 * Math.PI * f * (i / sr)) + 0.72 * Math.sin(2 * Math.PI * f * 1.5 * (i / sr));
+        const sat = Math.tanh(raw * 6.8) * env * 0.78;
+        dataL[i] = sat;
+        dataR[i] = sat;
+      }
+    } else {
+      const notes = [329.63, 392.00, 440.00, 493.88, 587.33, 493.88, 440.00, 392.00];
+      const stepSamples = Math.floor(len / 8);
+      for (let i = 0; i < len; i++) {
+        const idx = Math.floor(i / stepSamples) % notes.length;
+        const localT = (i % stepSamples) / sr;
+        const f = notes[idx];
+        const env = Math.exp(-localT * 2.2);
+        const raw = Math.sin(2 * Math.PI * f * (i / sr));
+        const fz = Math.sign(raw) * (1 - Math.exp(-Math.abs(raw) * 9.5)) * env * 0.7;
+        dataL[i] = fz;
+        dataR[i] = fz * 0.94;
+      }
+    }
+    return buf;
+  }
+
+  function loadRefSample(type) {
+    state.refBuffer = buildBuiltInRefBuffer(type);
+    state.regionStart = 0;
+    state.regionEnd = 1;
+    const labels = {
+      strumChord: '샘플 1 — 어쿠스틱 & 일렉 코드 스트럼 (Em-C-G-D)',
+      cleanChorus: '샘플 2 — 80s 코러스 클린 아르페지오',
+      metalScoop: '샘플 3 — 90s 하이게인 메탈 팜뮤트 리프',
+      fuzzLead: '샘플 4 — 사이키델릭 퍼즈 & 딜레이 리드'
+    };
+    document.getElementById('loadedTrackName').textContent = `로드된 오디오: ${labels[type]}`;
+    document.querySelectorAll('.ref-btn').forEach(b => b.classList.toggle('active', b.dataset.ref === type));
+    drawWaveform();
+  }
+
+  function drawWaveform() {
+    const canvas = document.getElementById('waveCanvas');
+    const rect = canvas.parentElement.getBoundingClientRect();
+    canvas.width = Math.max(300, Math.floor(rect.width * 2));
+    canvas.height = 204;
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width;
+    const h = canvas.height;
+
+    ctx.fillStyle = '#080b10';
+    ctx.fillRect(0, 0, w, h);
+
+    if (!state.refBuffer) return;
+    const data = state.refBuffer.getChannelData(0);
+    const step = Math.ceil(data.length / w);
+    const mid = h / 2;
+
+    const x1 = state.regionStart * w;
+    const x2 = state.regionEnd * w;
+    ctx.fillStyle = 'rgba(6, 182, 212, 0.16)';
+    ctx.fillRect(x1, 0, x2 - x1, h);
+
+    for (let x = 0; x < w; x++) {
+      let min = 1, max = -1;
+      const base = x * step;
+      for (let j = 0; j < step && base + j < data.length; j++) {
+        const v = data[base + j];
+        if (v < min) min = v;
+        if (v > max) max = v;
+      }
+      const inSel = x >= x1 && x <= x2;
+      ctx.strokeStyle = inSel ? '#22d3ee' : '#334155';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x, mid + min * mid * 0.88);
+      ctx.lineTo(x, mid + max * mid * 0.88);
+      ctx.stroke();
+    }
+
+    ctx.strokeStyle = '#f59e0b';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(x1, 0); ctx.lineTo(x1, h);
+    ctx.moveTo(x2, 0); ctx.lineTo(x2, h);
+    ctx.stroke();
+
+    const dur = state.refBuffer.duration;
+    const sSec = (state.regionStart * dur).toFixed(2);
+    const eSec = (state.regionEnd * dur).toFixed(2);
+    const dSec = ((state.regionEnd - state.regionStart) * dur).toFixed(2);
+    document.getElementById('regionTimeBadge').textContent = `구간: ${sSec}s ~ ${eSec}s (${dSec}s)`;
+  }
+
+  function analyzeAndMatchTone() {
+    if (!state.refBuffer) return;
+    state.prevToneSnapshot = JSON.parse(JSON.stringify({
+      guitarType: state.guitarType,
+      pickupVoicing: state.pickupVoicing,
+      pickupPos: state.pickupPos,
+      guitarTone: state.guitarTone,
+      pickPosition: state.pickPosition,
+      drive: state.drive,
+      mod: state.mod,
+      eq: state.eq,
+      delay: state.delay,
+      reverb: state.reverb,
+      amp: state.amp
+    }));
+    document.getElementById('btnRestoreTone').disabled = false;
+
+    const { mono: slice, stereoWidth } = extractMonoAndStereoStats(state.refBuffer, state.regionStart, state.regionEnd);
+    const sr = state.refBuffer.sampleRate;
+    const fftSize = 2048;
+
+    const numFrames = Math.min(48, Math.max(4, Math.floor(slice.length / fftSize)));
+    const hop = Math.max(1, Math.floor((slice.length - fftSize) / Math.max(1, numFrames - 1)));
+    const frames = [];
+    let maxFrameRms = 0;
+
+    for (let f = 0; f < numFrames; f++) {
+      const start = Math.min(Math.max(0, slice.length - fftSize), f * hop);
+      const seg = slice.subarray(start, start + fftSize);
+      let sumSq = 0, peak = 0;
+      for (let i = 0; i < seg.length; i++) {
+        const a = Math.abs(seg[i]);
+        sumSq += seg[i] * seg[i];
+        if (a > peak) peak = a;
+      }
+      const rms = Math.sqrt(sumSq / seg.length);
+      if (rms > maxFrameRms) maxFrameRms = rms;
+      frames.push({ start, rms, peak });
+    }
+
+    const activeFrames = frames.filter(fr => fr.rms >= maxFrameRms * 0.16);
+    const usedFrames = activeFrames.length > 0 ? activeFrames : frames;
+
+    let crestSum = 0;
+    let clipRatioSum = 0;
+    const bandRanges = [
+      [60, 175],     // 100Hz
+      [175, 520],    // 320Hz
+      [520, 1450],   // 900Hz
+      [1450, 3600],  // 2.4kHz
+      [3600, 7200]   // 6.0kHz
+    ];
+    const bandAccum = [0, 0, 0, 0, 0];
+    let airAccum = 0;
+    let centroidNum = 0;
+    let centroidDen = 0;
+
+    usedFrames.forEach(fr => {
+      const seg = slice.subarray(fr.start, fr.start + fftSize);
+      const crest = fr.rms > 1e-6 ? 20 * Math.log10(fr.peak / fr.rms) : 14;
+      crestSum += crest;
+
+      let clipped = 0;
+      const thresh = fr.peak * 0.88;
+      for (let i = 0; i < seg.length; i++) {
+        if (Math.abs(seg[i]) >= thresh && thresh > 0.02) clipped++;
+      }
+      clipRatioSum += clipped / seg.length;
+
+      const mag = computeMagSpectrum(seg, fftSize);
+      const binHz = sr / fftSize;
+      for (let b = 1; b < mag.length; b++) {
+        const freq = b * binHz;
+        const pwr = mag[b] * mag[b];
+        if (freq >= 60 && freq <= 12000) {
+          centroidNum += freq * pwr;
+          centroidDen += pwr;
+        }
+        for (let k = 0; k < 5; k++) {
+          if (freq >= bandRanges[k][0] && freq < bandRanges[k][1]) {
+            bandAccum[k] += pwr;
+          }
+        }
+        if (freq >= 6800 && freq <= 13500) {
+          airAccum += pwr;
+        }
+      }
+    });
+
+    const avgCrestDb = crestSum / usedFrames.length;
+    const avgClipRatio = clipRatioSum / usedFrames.length;
+    const spectralCentroid = centroidDen > 0 ? centroidNum / centroidDen : 1200;
+    const totalBandPwr = bandAccum.reduce((a, b) => a + b, 0) + 1e-12;
+    const airRatio = airAccum / totalBandPwr;
+
+    const crestSat = Math.max(0, Math.min(100, (16.5 - avgCrestDb) * 8.2));
+    const clipSat = Math.max(0, Math.min(100, avgClipRatio * 420));
+    const satPct = Math.round(Math.min(99, Math.max(6, crestSat * 0.65 + clipSat * 0.35)));
+
+    const bandDb = bandAccum.map(p => 10 * Math.log10(p / totalBandPwr + 1e-9));
+    const minDb = Math.min(...bandDb);
+    const maxDb = Math.max(...bandDb);
+    const spanDb = Math.max(6, maxDb - minDb);
+    const normBands = bandDb.map(db => Math.round(15 + ((db - minDb) / spanDb) * 85));
+    normBands.forEach((pct, idx) => {
+      document.getElementById(`sb${idx}`).style.height = `${pct}%`;
+    });
+
+    const relBands = bandDb.map(db => db - (bandDb.reduce((a, b) => a + b, 0) / 5));
+
+    const candidates = [
+      {
+        id: 'acousticStrum',
+        name: 'Dreadnought Acoustic (Piezo Strum)',
+        score: (satPct < 45 ? 35 : -25) + (airRatio > 0.04 ? 42 : -15) + (avgCrestDb > 11.5 ? 25 : 0) + (relBands[4] > 0 ? 15 : 0),
+        apply: () => {
+          state.guitarType = 'acoustic'; state.pickupVoicing = 'piezo'; state.pickupPos = 'middle';
+          state.guitarTone = 9.2; state.pickPosition = 0.23;
+          state.drive = { on: false, type: 'boost', gain: 15, tone: 60, level: 60 };
+          state.mod = { on: stereoWidth > 0.18, type: 'chorus', rate: 24, depth: 26, mix: 22 };
+          state.delay = { on: true, time: 330, feedback: 22, mix: 16 };
+          state.reverb = { on: true, decay: 46, damp: 35, mix: 28 };
+          state.amp = { on: false, type: 'clean', gain: 25, bass: 50, mid: 50, treble: 55 };
+        }
+      },
+      {
+        id: 'funkStrat',
+        name: 'Funky Strat Quack (Pos 4 Neck+Mid)',
+        score: (satPct < 48 ? 32 : -20) + (relBands[2] < -1.5 ? 24 : 0) + (relBands[3] > 1.0 ? 22 : 0) + (airRatio <= 0.05 ? 14 : 0),
+        apply: () => {
+          state.guitarType = 'strat'; state.pickupVoicing = 'single'; state.pickupPos = 'neck_mid';
+          state.guitarTone = 9.5; state.pickPosition = 0.24;
+          state.drive = { on: true, type: 'boost', gain: 28, tone: 68, level: 64 };
+          state.mod = { on: stereoWidth > 0.2, type: 'phaser', rate: 40, depth: 36, mix: 28 };
+          state.delay = { on: false, time: 220, feedback: 20, mix: 14 };
+          state.reverb = { on: true, decay: 30, damp: 45, mix: 20 };
+          state.amp = { on: true, type: 'clean', gain: 36, bass: 48, mid: 55, treble: 74 };
+        }
+      },
+      {
+        id: 'chorusClean',
+        name: '80s Stereo Chorus Clean (Strat Neck)',
+        score: (satPct < 46 ? 30 : -20) + (stereoWidth > 0.15 ? 38 : 5) + (spectralCentroid < 1900 ? 15 : 0),
+        apply: () => {
+          state.guitarType = 'strat'; state.pickupVoicing = 'single'; state.pickupPos = 'neck';
+          state.guitarTone = 8.6; state.pickPosition = 0.28;
+          state.drive = { on: false, type: 'boost', gain: 22, tone: 60, level: 60 };
+          state.mod = { on: true, type: 'chorus', rate: 34, depth: 62, mix: 54 };
+          state.delay = { on: true, time: 380, feedback: 36, mix: 30 };
+          state.reverb = { on: true, decay: 62, damp: 35, mix: 36 };
+          state.amp = { on: true, type: 'clean', gain: 32, bass: 54, mid: 52, treble: 66 };
+        }
+      },
+      {
+        id: 'jazzHollow',
+        name: 'Warm Semi-Hollow Jazz (ES-335 Neck)',
+        score: (satPct < 45 ? 28 : -15) + (spectralCentroid < 950 ? 38 : -10) + (relBands[1] > 2.0 ? 22 : 0),
+        apply: () => {
+          state.guitarType = 'hollow'; state.pickupVoicing = 'humbucker'; state.pickupPos = 'neck';
+          state.guitarTone = 5.5; state.pickPosition = 0.31;
+          state.drive = { on: false, type: 'tube', gain: 20, tone: 45, level: 60 };
+          state.mod = { on: false, type: 'chorus', rate: 25, depth: 30, mix: 25 };
+          state.delay = { on: true, time: 340, feedback: 24, mix: 18 };
+          state.reverb = { on: true, decay: 48, damp: 60, mix: 28 };
+          state.amp = { on: true, type: 'clean', gain: 28, bass: 62, mid: 58, treble: 44 };
+        }
+      },
+      {
+        id: 'bluesCrunch',
+        name: 'Vintage Blues Crunch (Tele + P-90)',
+        score: (satPct >= 42 && satPct <= 68 ? 36 : 0) + (relBands[2] > 0.5 ? 24 : 0) + (avgClipRatio < 0.08 ? 16 : 0),
+        apply: () => {
+          state.guitarType = 'tele'; state.pickupVoicing = 'p90'; state.pickupPos = 'bridge';
+          state.guitarTone = 8.0; state.pickPosition = 0.16;
+          state.drive = { on: true, type: 'tube', gain: 56, tone: 58, level: 66 };
+          state.mod = { on: false, type: 'tremolo', rate: 45, depth: 40, mix: 35 };
+          state.delay = { on: true, time: 290, feedback: 26, mix: 22 };
+          state.reverb = { on: true, decay: 42, damp: 48, mix: 26 };
+          state.amp = { on: true, type: 'tweed', gain: 58, bass: 58, mid: 64, treble: 60 };
+        }
+      },
+      {
+        id: 'classicRock',
+        name: 'British Classic Rock OD (LP + Plexi)',
+        score: (satPct >= 52 && satPct <= 78 ? 36 : 0) + (relBands[2] > 0 ? 18 : 0) + (relBands[3] > 0.5 ? 18 : 0),
+        apply: () => {
+          state.guitarType = 'lespaul'; state.pickupVoicing = 'humbucker'; state.pickupPos = 'bridge';
+          state.guitarTone = 8.5; state.pickPosition = 0.14;
+          state.drive = { on: true, type: 'crunch', gain: 68, tone: 62, level: 68 };
+          state.mod = { on: false, type: 'chorus', rate: 25, depth: 30, mix: 25 };
+          state.delay = { on: true, time: 310, feedback: 25, mix: 18 };
+          state.reverb = { on: true, decay: 38, damp: 48, mix: 22 };
+          state.amp = { on: true, type: 'plexi', gain: 68, bass: 60, mid: 66, treble: 66 };
+        }
+      },
+      {
+        id: 'metalScoop',
+        name: '90s High-Gain Metal (LP + Recto Scoop)',
+        score: (satPct > 65 ? 38 : -15) + (relBands[0] > 1.5 ? 25 : 0) + (relBands[2] < -1.0 ? 28 : 0),
+        apply: () => {
+          state.guitarType = 'lespaul'; state.pickupVoicing = 'high_humbucker'; state.pickupPos = 'bridge';
+          state.guitarTone = 9.0; state.pickPosition = 0.11;
+          state.drive = { on: true, type: 'metal', gain: 82, tone: 65, level: 68 };
+          state.mod = { on: false, type: 'chorus', rate: 25, depth: 30, mix: 25 };
+          state.delay = { on: true, time: 250, feedback: 20, mix: 14 };
+          state.reverb = { on: true, decay: 28, damp: 50, mix: 16 };
+          state.amp = { on: true, type: 'recto', gain: 76, bass: 66, mid: 36, treble: 72 };
+        }
+      },
+      {
+        id: 'fuzzLead',
+        name: 'Psychedelic Fuzz & Delay (Superstrat)',
+        score: (satPct > 68 ? 34 : -15) + (avgClipRatio > 0.10 ? 32 : 0) + (relBands[2] > 1.5 ? 24 : 0),
+        apply: () => {
+          state.guitarType = 'superstrat'; state.pickupVoicing = 'active_emg'; state.pickupPos = 'bridge';
+          state.guitarTone = 7.5; state.pickPosition = 0.14;
+          state.drive = { on: true, type: 'fuzz', gain: 85, tone: 55, level: 66 };
+          state.mod = { on: true, type: 'flanger', rate: 24, depth: 45, mix: 32 };
+          state.delay = { on: true, time: 410, feedback: 44, mix: 35 };
+          state.reverb = { on: true, decay: 55, damp: 40, mix: 32 };
+          state.amp = { on: true, type: 'plexi', gain: 68, bass: 58, mid: 65, treble: 60 };
+        }
+      }
+    ];
+
+    candidates.sort((a, b) => b.score - a.score);
+    const winner = candidates[0];
+    winner.apply();
+
+    const eqShaped = relBands.map(rb => {
+      const clamped = Math.max(-7.5, Math.min(7.5, rb * 0.85));
+      return Math.round(clamped * 2) / 2;
+    });
+    state.eq = { on: true, bands: eqShaped };
+
+    document.getElementById('repStyle').textContent = winner.name;
+    document.getElementById('repDynamics').textContent = `${avgCrestDb.toFixed(1)} dB / ${satPct}% (폭 ${Math.round(stereoWidth * 100)}%)`;
+
+    renderGuitarModelUI();
+    renderPedalboardControls();
+    updateDSPParameters();
+    showToast(`AI 정밀 톤 매칭 완료: ${winner.name} + 5밴드 EQ 자동 보정`);
+  }
+
+  const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+  const CHORD_TEMPLATES = [
+    { suffix: '',     intervals: [0, 4, 7],     weights: [1.3, 1.0, 1.05] },
+    { suffix: 'm',    intervals: [0, 3, 7],     weights: [1.3, 1.05, 1.05] },
+    { suffix: '5',    intervals: [0, 7],        weights: [1.35, 1.15] },
+    { suffix: '7',    intervals: [0, 4, 7, 10], weights: [1.2, 0.95, 0.95, 0.9] },
+    { suffix: 'm7',   intervals: [0, 3, 7, 10], weights: [1.2, 1.0, 0.95, 0.9] },
+    { suffix: 'sus4', intervals: [0, 5, 7],     weights: [1.25, 0.95, 1.0] }
+  ];
+
+  const CHORD_VOICING_DB = {
+    'E':    { low: [0, 0, 1, 2, 2, 0], mid: [7, 9, 9, 9, 7, null], high: [12, 12, 13, 14, 14, 12] },
+    'Em':   { low: [0, 0, 0, 2, 2, 0], mid: [7, 8, 9, 9, 7, null], high: [12, 12, 12, 14, 14, 12] },
+    'E5':   { low: [null, null, null, 2, 2, 0], mid: [null, null, 9, 9, 7, null], high: [null, null, null, 14, 14, 12] },
+    'E7':   { low: [0, 0, 1, 0, 2, 0], mid: [7, 9, 7, 9, 7, null], high: [12, 12, 13, 12, 14, 12] },
+    'Em7':  { low: [0, 3, 0, 2, 2, 0], mid: [7, 8, 7, 9, 7, null], high: [12, 12, 12, 12, 14, 12] },
+    'Esus4':{ low: [0, 0, 2, 2, 2, 0], mid: [7, 10, 9, 9, 7, null], high: [12, 12, 14, 14, 14, 12] },
+
+    'F':    { low: [1, 1, 2, 3, 3, 1], mid: [8, 10, 10, 10, 8, null], high: [13, 13, 14, 15, 15, 13] },
+    'Fm':   { low: [1, 1, 1, 3, 3, 1], mid: [8, 9, 10, 10, 8, null], high: [13, 13, 13, 15, 15, 13] },
+    'F5':   { low: [null, null, null, 3, 3, 1], mid: [null, null, 10, 10, 8, null], high: [null, null, null, 15, 15, 13] },
+    'F7':   { low: [1, 1, 2, 1, 3, 1], mid: [8, 10, 8, 10, 8, null], high: [13, 13, 14, 13, 15, 13] },
+    'Fm7':  { low: [1, 1, 1, 1, 3, 1], mid: [8, 9, 8, 10, 8, null], high: [13, 13, 13, 13, 15, 13] },
+    'Fsus4':{ low: [1, 1, 3, 3, 3, 1], mid: [8, 11, 10, 10, 8, null], high: [13, 13, 15, 15, 15, 13] },
+
+    'F#':   { low: [2, 2, 3, 4, 4, 2], mid: [9, 11, 11, 11, 9, null], high: [14, 14, 15, 16, 16, 14] },
+    'F#m':  { low: [2, 2, 2, 4, 4, 2], mid: [9, 10, 11, 11, 9, null], high: [14, 14, 14, 16, 16, 14] },
+    'F#5':  { low: [null, null, null, 4, 4, 2], mid: [null, null, 11, 11, 9, null], high: [null, null, null, 16, 16, 14] },
+    'F#7':  { low: [2, 2, 3, 2, 4, 2], mid: [9, 11, 9, 11, 9, null], high: [14, 14, 15, 14, 16, 14] },
+    'F#m7': { low: [2, 2, 2, 2, 4, 2], mid: [9, 10, 9, 11, 9, null], high: [14, 14, 14, 14, 16, 14] },
+    'F#sus4':{low: [2, 2, 4, 4, 4, 2], mid: [9, 12, 11, 11, 9, null], high: [14, 14, 16, 16, 16, 14] },
+
+    'G':    { low: [3, 0, 0, 0, 2, 3], mid: [10, 12, 12, 12, 10, null], high: [15, 15, 16, 17, 17, 15] },
+    'Gm':   { low: [3, 3, 3, 5, 5, 3], mid: [10, 11, 12, 12, 10, null], high: [15, 15, 15, 17, 17, 15] },
+    'G5':   { low: [null, null, null, 5, 5, 3], mid: [null, null, 12, 12, 10, null], high: [null, null, null, 17, 17, 15] },
+    'G7':   { low: [1, 0, 0, 0, 2, 3], mid: [10, 12, 10, 12, 10, null], high: [15, 15, 16, 15, 17, 15] },
+    'Gm7':  { low: [3, 3, 3, 3, 5, 3], mid: [10, 11, 10, 12, 10, null], high: [15, 15, 15, 15, 17, 15] },
+    'Gsus4':{ low: [3, 1, 0, 0, 3, 3], mid: [10, 13, 12, 12, 10, null], high: [15, 15, 17, 17, 17, 15] },
+
+    'G#':   { low: [4, 4, 5, 6, 6, 4], mid: [8, 9, 8, 10, 11, null], high: [16, 16, 17, 18, 18, 16] },
+    'G#m':  { low: [4, 4, 4, 6, 6, 4], mid: [11, 12, 13, 13, 11, null], high: [16, 16, 16, 18, 18, 16] },
+    'G#5':  { low: [null, null, null, 6, 6, 4], mid: [null, null, 13, 13, 11, null], high: [null, null, null, 18, 18, 16] },
+
+    'A':    { low: [0, 2, 2, 2, 0, null], mid: [5, 5, 6, 7, 7, 5], high: [12, 14, 14, 14, 12, null] },
+    'Am':   { low: [0, 1, 2, 2, 0, null], mid: [5, 5, 5, 7, 7, 5], high: [12, 13, 14, 14, 12, null] },
+    'A5':   { low: [null, null, 2, 2, 0, null], mid: [null, null, null, 7, 7, 5], high: [null, null, 14, 14, 12, null] },
+    'A7':   { low: [0, 2, 0, 2, 0, null], mid: [5, 5, 6, 5, 7, 5], high: [12, 14, 12, 14, 12, null] },
+    'Am7':  { low: [0, 1, 0, 2, 0, null], mid: [5, 5, 5, 5, 7, 5], high: [12, 13, 12, 14, 12, null] },
+    'Asus4':{ low: [0, 3, 2, 2, 0, null], mid: [5, 5, 7, 7, 7, 5], high: [12, 15, 14, 14, 12, null] },
+
+    'A#':   { low: [1, 3, 3, 3, 1, null], mid: [6, 6, 7, 8, 8, 6], high: [13, 15, 15, 15, 13, null] },
+    'A#m':  { low: [1, 2, 3, 3, 1, null], mid: [6, 6, 6, 8, 8, 6], high: [13, 14, 15, 15, 13, null] },
+    'A#5':  { low: [null, null, 3, 3, 1, null], mid: [null, null, null, 8, 8, 6], high: [null, null, 15, 15, 13, null] },
+
+    'B':    { low: [2, 4, 4, 4, 2, null], mid: [7, 7, 8, 9, 9, 7], high: [14, 16, 16, 16, 14, null] },
+    'Bm':   { low: [2, 3, 4, 4, 2, null], mid: [7, 7, 7, 9, 9, 7], high: [14, 15, 16, 16, 14, null] },
+    'B5':   { low: [null, null, 4, 4, 2, null], mid: [null, null, null, 9, 9, 7], high: [null, null, 16, 16, 14, null] },
+    'B7':   { low: [2, 0, 2, 1, 2, null], mid: [7, 7, 8, 7, 9, 7], high: [14, 16, 14, 16, 14, null] },
+    'Bm7':  { low: [2, 3, 2, 4, 2, null], mid: [7, 7, 7, 7, 9, 7], high: [14, 15, 14, 16, 14, null] },
+
+    'C':    { low: [0, 1, 0, 2, 3, null], mid: [8, 8, 9, 10, 10, 8], high: [15, 17, 17, 17, 15, null] },
+    'Cm':   { low: [3, 4, 5, 5, 3, null], mid: [8, 8, 8, 10, 10, 8], high: [15, 16, 17, 17, 15, null] },
+    'C5':   { low: [null, null, 5, 5, 3, null], mid: [null, null, null, 10, 10, 8], high: [null, null, 17, 17, 15, null] },
+    'C7':   { low: [0, 1, 3, 2, 3, null], mid: [8, 8, 9, 8, 10, 8], high: [15, 17, 15, 17, 15, null] },
+    'Cm7':  { low: [3, 4, 3, 5, 3, null], mid: [8, 8, 8, 8, 10, 8], high: [15, 16, 15, 17, 15, null] },
+    'Csus4':{ low: [1, 1, 0, 3, 3, null], mid: [8, 8, 10, 10, 10, 8], high: [15, 18, 17, 17, 15, null] },
+
+    'C#':   { low: [4, 6, 6, 6, 4, null], mid: [9, 9, 10, 11, 11, 9], high: [16, 18, 18, 18, 16, null] },
+    'C#m':  { low: [4, 5, 6, 6, 4, null], mid: [9, 9, 9, 11, 11, 9], high: [16, 17, 18, 18, 16, null] },
+    'C#5':  { low: [null, null, 6, 6, 4, null], mid: [null, null, null, 11, 11, 9], high: [null, null, 18, 18, 16, null] },
+
+    'D':    { low: [2, 3, 2, 0, null, null], mid: [5, 7, 7, 7, 5, null], high: [10, 10, 11, 12, 12, 10] },
+    'Dm':   { low: [1, 3, 2, 0, null, null], mid: [5, 6, 7, 7, 5, null], high: [10, 10, 10, 12, 12, 10] },
+    'D5':   { low: [null, null, 2, 0, null, null], mid: [null, null, 7, 7, 5, null], high: [null, null, null, 12, 12, 10] },
+    'D7':   { low: [2, 1, 2, 0, null, null], mid: [5, 7, 5, 7, 5, null], high: [10, 10, 11, 10, 12, 10] },
+    'Dm7':  { low: [1, 1, 2, 0, null, null], mid: [5, 6, 5, 7, 5, null], high: [10, 10, 10, 10, 12, 10] },
+    'Dsus4':{ low: [3, 3, 2, 0, null, null], mid: [5, 8, 7, 7, 5, null], high: [10, 10, 12, 12, 12, 10] },
+
+    'D#':   { low: [3, 4, 3, 1, null, null], mid: [6, 8, 8, 8, 6, null], high: [11, 11, 12, 13, 13, 11] },
+    'D#m':  { low: [2, 4, 3, 1, null, null], mid: [6, 7, 8, 8, 6, null], high: [11, 11, 11, 13, 13, 11] },
+    'D#5':  { low: [null, null, 3, 1, null, null], mid: [null, null, 8, 8, 6, null], high: [null, null, null, 13, 13, 11] }
+  };
+
+  function getChordVoicing(chordName, posPref) {
+    const entry = CHORD_VOICING_DB[chordName];
+    if (entry) {
+      if (posPref === 'mid') return entry.mid;
+      if (posPref === 'high') return entry.high;
+      return entry.low;
+    }
+    const rootStr = chordName.replace(/(m7|sus4|7|m|5)$/, '');
+    const rootPc = NOTE_NAMES.indexOf(rootStr);
+    if (rootPc < 0) return [null, null, null, 2, 2, 0];
+    const isMinor = chordName.includes('m') && !chordName.includes('maj');
+    const isPower = chordName.endsWith('5');
+    let aFret = (rootPc - 9 + 12) % 12;
+    if (posPref === 'mid' && aFret < 5) aFret += 12;
+    if (posPref === 'high' && aFret < 12) aFret += 12;
+    if (aFret > 19) aFret -= 12;
+    if (isPower) return [null, null, aFret + 2, aFret + 2, aFret, null];
+    return isMinor
+      ? [aFret, aFret + 1, aFret + 2, aFret + 2, aFret, null]
+      : [aFret, aFret + 2, aFret + 2, aFret + 2, aFret, null];
+  }
+
+  function analyzePolyphonicFrame(frame, sr) {
+    const fftSize = 4096;
+    const mag = computeMagSpectrum(frame, fftSize);
+    const binHz = sr / fftSize;
+
+    let lowHarmEnergy = 0;
+    let highNoiseEnergy = 0;
+    for (let b = 2; b < mag.length; b++) {
+      const f = b * binHz;
+      const p = mag[b] * mag[b];
+      if (f >= 75 && f <= 1200) lowHarmEnergy += p;
+      else if (f > 1800 && f <= 9000) highNoiseEnergy += p;
+    }
+    const noiseRatio = highNoiseEnergy / (lowHarmEnergy + 1e-10);
+
+    const chroma = new Float32Array(12);
+    let bestSingleMidi = 40;
+    let bestSingleSal = 0;
+    let bestBassPc = -1;
+    let bestBassSal = 0;
+
+    for (let midi = 40; midi <= 84; midi++) {
+      const f0 = 440 * Math.pow(2, (midi - 69) / 12);
+      let sal = 0;
+      const hWeights = [1.0, 0.58, 0.36, 0.22];
+      for (let h = 1; h <= 4; h++) {
+        const fh = f0 * h;
+        const centerBin = Math.round(fh / binHz);
+        if (centerBin >= 1 && centerBin < mag.length - 1) {
+          const localPeak = Math.max(mag[centerBin - 1], mag[centerBin], mag[centerBin + 1]);
+          sal += localPeak * hWeights[h - 1];
+        }
+      }
+      const pc = midi % 12;
+      chroma[pc] += sal;
+      if (sal > bestSingleSal) {
+        bestSingleSal = sal;
+        bestSingleMidi = midi;
+      }
+      if (midi <= 57 && sal > bestBassSal) {
+        bestBassSal = sal;
+        bestBassPc = pc;
+      }
+    }
+
+    const maxChroma = Math.max(...chroma, 1e-9);
+    const normChroma = Array.from(chroma, c => c / maxChroma);
+    const activePitchClasses = normChroma.filter(v => v >= 0.48).length;
+
+    let bestChord = 'E';
+    let bestScore = -999;
+
+    for (let root = 0; root < 12; root++) {
+      for (const tpl of CHORD_TEMPLATES) {
+        let dot = 0;
+        let tplNorm = 0;
+        for (let k = 0; k < tpl.intervals.length; k++) {
+          const pc = (root + tpl.intervals[k]) % 12;
+          const w = tpl.weights[k];
+          dot += normChroma[pc] * w;
+          tplNorm += w * w;
+        }
+        let nonChordPenalty = 0;
+        for (let pc = 0; pc < 12; pc++) {
+          const rel = (pc - root + 12) % 12;
+          if (!tpl.intervals.includes(rel)) {
+            nonChordPenalty += normChroma[pc] * 0.28;
+          }
+        }
+        const bassBonus = (root === bestBassPc) ? 0.32 : 0;
+        const score = dot / Math.sqrt(tplNorm) - nonChordPenalty + bassBonus;
+        if (score > bestScore) {
+          bestScore = score;
+          bestChord = NOTE_NAMES[root] + tpl.suffix;
+        }
+      }
+    }
+
+    return {
+      noiseRatio,
+      activePitchClasses,
+      bestSingleMidi,
+      bestChord,
+      chordConfidence: bestScore
+    };
+  }
+
+  function transcribeSelectedRegion() {
+    if (!state.refBuffer) return;
+
+    state.prevTabSnapshot = {
+      bars: state.bars,
+      grid: state.grid.map(r => [...r]),
+      pm: [...state.pm],
+      barChords: [...state.barChords]
+    };
+    document.getElementById('btnRestoreTab').disabled = false;
+
+    const mode = document.getElementById('transcribeModeSelect').value;
+    const barsSel = document.getElementById('transcribeBarsSelect').value;
+    const posPref = document.getElementById('transcribePosSelect').value;
+    const addPowerChord = document.getElementById('chkPowerChord').checked;
+
+    const { mono: slice } = extractMonoAndStereoStats(state.refBuffer, state.regionStart, state.regionEnd);
+    const sr = state.refBuffer.sampleRate;
+    const durSec = slice.length / sr;
+
+    const targetBars = barsSel === 'auto'
+      ? Math.max(1, Math.min(8, Math.round(durSec / 1.8)))
+      : parseInt(barsSel, 10);
+
+    const totalSteps = targetBars * 16;
+    const newGrid = Array.from({ length: 6 }, () => Array(totalSteps).fill(null));
+    const newPm = Array(totalSteps).fill(false);
+
+    const hop = Math.max(128, Math.floor(sr * 0.012));
+    const winLen = 1024;
+    const numHops = Math.max(4, Math.floor((slice.length - winLen) / hop));
+    const rmsArr = new Float32Array(numHops);
+    const fluxArr = new Float32Array(numHops);
+    let prevMag = null;
+
+    for (let h = 0; h < numHops; h++) {
+      const start = h * hop;
+      const seg = slice.subarray(start, start + winLen);
+      let sq = 0;
+      for (let i = 0; i < seg.length; i++) sq += seg[i] * seg[i];
+      rmsArr[h] = Math.sqrt(sq / seg.length);
+
+      const mag = computeMagSpectrum(seg, winLen);
+      if (prevMag) {
+        let flux = 0;
+        const binHz = sr / winLen;
+        for (let b = 1; b < mag.length; b++) {
+          if (b * binHz >= 900) {
+            const diff = mag[b] - prevMag[b];
+            if (diff > 0) flux += diff;
+          }
+        }
+        fluxArr[h] = flux;
+      }
+      prevMag = mag;
+    }
+
+    const maxRms = Math.max(...rmsArr, 1e-6);
+    const maxFlux = Math.max(...fluxArr, 1e-6);
+    const onsetCurve = new Float32Array(numHops);
+    for (let h = 1; h < numHops; h++) {
+      const rmsRise = Math.max(0, rmsArr[h] - rmsArr[h - 1]) / maxRms;
+      const normFlux = fluxArr[h] / maxFlux;
+      onsetCurve[h] = rmsRise * 1.35 + normFlux * 0.85;
+    }
+
+    const stepSamples = slice.length / totalSteps;
+    const fretRange = posPref === 'low' ? [0, 5] : posPref === 'mid' ? [5, 12] : posPref === 'high' ? [12, 22] : [0, 22];
+    const detectedChords = [];
+    const barChordVotes = Array.from({ length: targetBars }, () => ({}));
+    let lastChordName = null;
+    let strumCount = 0;
+
+    for (let st = 0; st < totalSteps; st++) {
+      const sStart = st * stepSamples;
+      const sEnd = (st + 1) * stepSamples;
+      const hStart = Math.max(0, Math.floor((sStart - stepSamples * 0.25) / hop));
+      const hEnd = Math.min(numHops - 1, Math.ceil((sEnd - stepSamples * 0.15) / hop));
+
+      let peakOnset = 0;
+      let peakHop = hStart;
+      let stepRms = 0;
+      for (let h = hStart; h <= hEnd; h++) {
+        if (onsetCurve[h] > peakOnset) {
+          peakOnset = onsetCurve[h];
+          peakHop = h;
+        }
+        if (rmsArr[h] > stepRms) stepRms = rmsArr[h];
+      }
+
+      const isStrongOnset = peakOnset > 0.16 && stepRms > maxRms * 0.14;
+      const isBeatSubStrum = (mode === 'strum') && (st % 2 === 0) && stepRms > maxRms * 0.22 && peakOnset > 0.08;
+
+      if (!isStrongOnset && !isBeatSubStrum) continue;
+
+      const onsetSample = Math.min(slice.length - 4096, Math.max(0, peakHop * hop + Math.floor(sr * 0.022)));
+      if (onsetSample < 0 || slice.length < 4096) continue;
+      const frame = slice.subarray(onsetSample, onsetSample + 4096);
+      const info = analyzePolyphonicFrame(frame, sr);
+
+      const isPercussiveMute = (info.noiseRatio > 2.6 && stepRms < maxRms * 0.65) ||
+                               (mode === 'strum' && info.noiseRatio > 1.8 && peakOnset > 0.25 && stepRms < maxRms * 0.55);
+
+      if (isPercussiveMute && mode !== 'riff') {
+        newGrid[1][st] = 'X';
+        newGrid[2][st] = 'X';
+        newGrid[3][st] = 'X';
+        strumCount++;
+        continue;
+      }
+
+      const shouldStrum = mode === 'strum' || (mode === 'auto' && info.activePitchClasses >= 3);
+
+      if (shouldStrum) {
+        let chordToUse = info.bestChord;
+        if (lastChordName && (st % 4 !== 0) && info.chordConfidence < 1.15) {
+          chordToUse = lastChordName;
+        }
+        lastChordName = chordToUse;
+        if (detectedChords[detectedChords.length - 1] !== chordToUse) {
+          detectedChords.push(chordToUse);
+        }
+        const barIdx = Math.min(targetBars - 1, Math.floor(st / 16));
+        barChordVotes[barIdx][chordToUse] = (barChordVotes[barIdx][chordToUse] || 0) + 1;
+
+        const voicing = getChordVoicing(chordToUse, posPref);
+        for (let s = 0; s < 6; s++) {
+          if (voicing[s] !== null && voicing[s] !== undefined) {
+            newGrid[s][st] = voicing[s];
+          }
+        }
+        strumCount++;
+      } else {
+        const midi = info.bestSingleMidi;
+        let bestStr = -1, bestFret = -1, bestScore = 999;
+        for (let s = 5; s >= 0; s--) {
+          const fret = midi - STRING_MIDI[s];
+          if (fret >= 0 && fret <= 22) {
+            const inRange = fret >= fretRange[0] && fret <= fretRange[1];
+            const score = (inRange ? 0 : 20) + Math.abs(fret - (fretRange[0] + fretRange[1]) / 2);
+            if (score < bestScore) {
+              bestScore = score;
+              bestStr = s;
+              bestFret = fret;
+            }
+          }
+        }
+        if (bestStr !== -1) {
+          newGrid[bestStr][st] = bestFret;
+          if (midi < 53 && stepRms > maxRms * 0.45 && info.noiseRatio < 0.7) {
+            newPm[st] = true;
+          }
+          if (addPowerChord && bestStr >= 4 && bestFret + 2 <= 22) {
+            newGrid[bestStr - 1][st] = bestFret + 2;
+          }
+        }
+      }
+    }
+
+    const resolvedBarChords = barChordVotes.map((votes, idx) => {
+      const entries = Object.entries(votes).sort((a, b) => b[1] - a[1]);
+      if (entries.length > 0) return entries[0][0];
+      return idx > 0 ? null : (detectedChords[0] || null);
+    });
+    for (let b = 1; b < resolvedBarChords.length; b++) {
+      if (!resolvedBarChords[b] && resolvedBarChords[b - 1]) {
+        resolvedBarChords[b] = resolvedBarChords[b - 1];
+      }
+    }
+
+    state.bars = targetBars;
+    state.loopStart = 0;
+    state.loopEnd = targetBars - 1;
+    state.grid = newGrid;
+    state.pm = newPm;
+    state.barChords = resolvedBarChords;
+
+    updateLoopSelectors();
+    renderTabGrid();
+    if (state.isPlaying) {
+      pausePlayback();
+      startPlayback();
+    }
+
+    const chordSummary = detectedChords.length > 0
+      ? `인식 코드: ${detectedChords.slice(0, 8).join(' → ')}`
+      : (strumCount > 0 ? '코드 스트럼 패턴 채보 완료' : '단음 리프/멜로디 채보 완료');
+    document.getElementById('repChords').textContent = detectedChords.length > 0
+      ? detectedChords.slice(0, 8).join(' → ')
+      : (strumCount > 0 ? '퍼커시브 스트럼 패턴' : '단음 리프 / 솔로');
+    showToast(`타브 채보 완료 (${targetBars}마디) · ${chordSummary}`);
+  }
+
+  /* =========================================================================
+   * 10. REAL-TIME OSCILLOSCOPE & STEREO VU METER
+   * ========================================================================= */
+  function showToast(msg) {
+    const el = document.getElementById('statusToast');
+    if (el) el.textContent = msg;
+  }
+
+  function startMeterLoop() {
+    const scopeCanvas = document.getElementById('scopeCanvas');
+    const sCtx = scopeCanvas ? scopeCanvas.getContext('2d') : null;
+    const vuL = document.getElementById('vuL');
+    const vuR = document.getElementById('vuR');
+    const dataArray = new Uint8Array(512);
+
+    function renderFrame() {
+      if (sCtx && scopeCanvas) {
+        const w = scopeCanvas.width;
+        const h = scopeCanvas.height;
+        sCtx.fillStyle = '#07090d';
+        sCtx.fillRect(0, 0, w, h);
+
+        sCtx.strokeStyle = '#1e293b';
+        sCtx.lineWidth = 1;
+        sCtx.beginPath();
+        sCtx.moveTo(0, h / 2);
+        sCtx.lineTo(w, h / 2);
+        sCtx.stroke();
+
+        if (analyserNode && actx && actx.state === 'running') {
+          analyserNode.getByteTimeDomainData(dataArray);
+          let sumSq = 0;
+          sCtx.strokeStyle = '#22d3ee';
+          sCtx.lineWidth = 1.6;
+          sCtx.beginPath();
+
+          for (let i = 0; i < dataArray.length; i++) {
+            const norm = (dataArray[i] - 128) / 128;
+            sumSq += norm * norm;
+            const x = (i / (dataArray.length - 1)) * w;
+            const y = h / 2 + norm * (h * 0.44);
+            if (i === 0) sCtx.moveTo(x, y);
+            else sCtx.lineTo(x, y);
+          }
+          sCtx.stroke();
+
+          const rms = Math.sqrt(sumSq / dataArray.length);
+          const pct = Math.min(100, Math.round(rms * 280));
+          if (vuL) vuL.style.width = `${pct}%`;
+          if (vuR) vuR.style.width = `${Math.min(100, Math.round(pct * 0.96))}%`;
+        } else {
+          if (vuL) vuL.style.width = '0%';
+          if (vuR) vuR.style.width = '0%';
+        }
+      }
+      requestAnimationFrame(renderFrame);
+    }
+
+    requestAnimationFrame(renderFrame);
+  }
+
+  /* =========================================================================
+   * 11. UI EVENT BINDINGS, WAVEFORM SELECTION & KEYBOARD SHORTCUTS
+   * ========================================================================= */
+  function handleAudioFileUpload(file) {
+    if (!file) return;
+    ensureAudio();
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+      try {
+        const arrayBuf = ev.target.result;
+        const decoded = await actx.decodeAudioData(arrayBuf);
+        state.refBuffer = decoded;
+        state.regionStart = 0;
+        state.regionEnd = 1;
+        document.getElementById('loadedTrackName').textContent =
+          `로드된 오디오: ${file.name} (${decoded.duration.toFixed(2)}s)`;
+        document.querySelectorAll('.ref-btn').forEach(b => b.classList.remove('active'));
+        drawWaveform();
+        showToast(`오디오 파일 로드 완료: ${file.name}`);
+      } catch (err) {
+        showToast('오디오 디코딩에 실패했습니다. 지원되는 오디오 파일인지 확인해주세요.');
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  function previewSelectedRegion() {
+    if (!state.refBuffer) return;
+    ensureAudio();
+    if (previewSourceNode) {
+      try { previewSourceNode.stop(); } catch (_) {}
+      previewSourceNode = null;
+    }
+
+    const dur = state.refBuffer.duration;
+    const offset = state.regionStart * dur;
+    const playLen = Math.max(0.05, (state.regionEnd - state.regionStart) * dur);
+
+    const src = actx.createBufferSource();
+    src.buffer = state.refBuffer;
+    src.connect(masterGainNode);
+    src.start(0, offset, playLen);
+    previewSourceNode = src;
+    showToast(`선택 구간 미리듣기 (${offset.toFixed(2)}s ~ ${(offset + playLen).toFixed(2)}s)`);
+  }
+
+  function bindEvents() {
+    // Audio Engine Activation & Header Actions
+    document.getElementById('audioStatusBadge').addEventListener('click', () => {
+      ensureAudio();
+      showToast('Web Audio 48kHz DSP 엔진이 활성화되었습니다.');
+    });
+
+    document.getElementById('btnChordTest').addEventListener('click', playChordTest);
+
+    const presetSel = document.getElementById('tonePresetSelect');
+    Object.entries(TONE_PRESETS).forEach(([key, p]) => {
+      const opt = document.createElement('option');
+      opt.value = key;
+      opt.textContent = p.label;
+      presetSel.appendChild(opt);
+    });
+    presetSel.addEventListener('change', (e) => applyTonePreset(e.target.value));
+
+    // AI Audio Dropzone & Reference Samples
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('audioFileInput');
+    dropZone.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        handleAudioFileUpload(e.target.files[0]);
+      }
+    });
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.classList.add('dragover');
+    });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
+        handleAudioFileUpload(e.dataTransfer.files[0]);
+      }
+    });
+
+    document.querySelectorAll('.ref-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        loadRefSample(btn.dataset.ref);
+        showToast(`레퍼런스 샘플 로드됨: ${btn.querySelector('span').textContent}`);
+      });
+    });
+
+    // Interactive Waveform Drag Selector
+    const waveWrap = document.getElementById('waveWrap');
+    let isDraggingWave = false;
+    let dragAnchorRatio = 0;
+
+    function ratioFromEvent(e) {
+      const rect = waveWrap.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      return Math.max(0, Math.min(1, (clientX - rect.left) / Math.max(1, rect.width)));
+    }
+
+    waveWrap.addEventListener('mousedown', (e) => {
+      isDraggingWave = true;
+      dragAnchorRatio = ratioFromEvent(e);
+      state.regionStart = dragAnchorRatio;
+      state.regionEnd = Math.min(1, dragAnchorRatio + 0.01);
+      drawWaveform();
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!isDraggingWave) return;
+      const cur = ratioFromEvent(e);
+      state.regionStart = Math.min(dragAnchorRatio, cur);
+      state.regionEnd = Math.max(dragAnchorRatio, cur);
+      if (state.regionEnd - state.regionStart < 0.01) {
+        state.regionEnd = Math.min(1, state.regionStart + 0.01);
+      }
+      drawWaveform();
+    });
+
+    window.addEventListener('mouseup', () => {
+      isDraggingWave = false;
+    });
+
+    waveWrap.addEventListener('touchstart', (e) => {
+      isDraggingWave = true;
+      dragAnchorRatio = ratioFromEvent(e);
+      state.regionStart = dragAnchorRatio;
+      state.regionEnd = Math.min(1, dragAnchorRatio + 0.01);
+      drawWaveform();
+    }, { passive: true });
+
+    window.addEventListener('touchmove', (e) => {
+      if (!isDraggingWave) return;
+      const cur = ratioFromEvent(e);
+      state.regionStart = Math.min(dragAnchorRatio, cur);
+      state.regionEnd = Math.max(dragAnchorRatio, cur);
+      drawWaveform();
+    }, { passive: true });
+
+    window.addEventListener('touchend', () => {
+      isDraggingWave = false;
+    });
+
+    window.addEventListener('resize', drawWaveform);
+
+    // Waveform Region Actions & AI Tone Match / Restore
+    document.getElementById('btnPreviewRegion').addEventListener('click', previewSelectedRegion);
+    document.getElementById('btnSelectAllWave').addEventListener('click', () => {
+      state.regionStart = 0;
+      state.regionEnd = 1;
+      drawWaveform();
+      showToast('전체 파형 구간이 선택되었습니다.');
+    });
+
+    document.getElementById('btnMatchTone').addEventListener('click', analyzeAndMatchTone);
+    document.getElementById('btnRestoreTone').addEventListener('click', () => {
+      if (!state.prevToneSnapshot) return;
+      const snap = state.prevToneSnapshot;
+      state.guitarType = snap.guitarType;
+      state.pickupVoicing = snap.pickupVoicing;
+      state.pickupPos = snap.pickupPos;
+      state.guitarTone = snap.guitarTone;
+      state.pickPosition = snap.pickPosition;
+      state.drive = { ...snap.drive };
+      state.mod = { ...snap.mod };
+      state.eq = { on: snap.eq.on, bands: [...snap.eq.bands] };
+      state.delay = { ...snap.delay };
+      state.reverb = { ...snap.reverb };
+      state.amp = { ...snap.amp };
+
+      renderGuitarModelUI();
+      renderPedalboardControls();
+      updateDSPParameters();
+      document.getElementById('btnRestoreTone').disabled = true;
+      showToast('AI 톤 매칭 이전 설정으로 복원되었습니다.');
+    });
+
+    // Tab Transcription & Restore
+    document.getElementById('btnTranscribeRegion').addEventListener('click', transcribeSelectedRegion);
+    document.getElementById('btnRestoreTab').addEventListener('click', () => {
+      if (!state.prevTabSnapshot) return;
+      state.bars = state.prevTabSnapshot.bars;
+      state.grid = state.prevTabSnapshot.grid.map(r => [...r]);
+      state.pm = [...state.prevTabSnapshot.pm];
+      state.barChords = [...(state.prevTabSnapshot.barChords || [])];
+      updateLoopSelectors();
+      renderTabGrid();
+      document.getElementById('btnRestoreTab').disabled = true;
+      showToast('채보 이전 타브 악보로 복원되었습니다.');
+    });
+
+    // Guitar Pickup Controls
+    document.getElementById('pickupVoicingSelect').addEventListener('change', (e) => {
+      state.pickupVoicing = e.target.value;
+      renderGuitarModelUI();
+      updateDSPParameters();
+      showToast(`픽업 코일 변경: ${PICKUP_VOICINGS[state.pickupVoicing].name}`);
+    });
+
+    document.getElementById('pickupPosSelect').addEventListener('change', (e) => {
+      selectPickupPosition(e.target.value, true);
+    });
+
+    document.getElementById('btnAuditionOpenStrings').addEventListener('click', auditionOpenStrings);
+
+    // Pedalboard Mode Selects & Footswitches
+    document.getElementById('driveType').addEventListener('change', (e) => {
+      state.drive.type = e.target.value;
+      updateDSPParameters();
+    });
+    document.getElementById('swDrive').addEventListener('click', () => {
+      state.drive.on = !state.drive.on;
+      renderPedalboardControls();
+      updateDSPParameters();
+    });
+
+    document.getElementById('modType').addEventListener('change', (e) => {
+      state.mod.type = e.target.value;
+      updateDSPParameters();
+    });
+    document.getElementById('swMod').addEventListener('click', () => {
+      state.mod.on = !state.mod.on;
+      renderPedalboardControls();
+      updateDSPParameters();
+    });
+
+    document.querySelectorAll('[data-eq-curve]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const curve = btn.dataset.eqCurve;
+        if (curve === 'flat') state.eq.bands = [0, 0, 0, 0, 0];
+        else if (curve === 'scoop') state.eq.bands = [4.5, -2.5, -6.5, 4.5, 3.0];
+        else if (curve === 'lead') state.eq.bands = [1.5, 2.5, 5.0, 3.0, -1.0];
+        state.eq.on = true;
+        renderPedalboardControls();
+        updateDSPParameters();
+      });
+    });
+    document.getElementById('swEq').addEventListener('click', () => {
+      state.eq.on = !state.eq.on;
+      renderPedalboardControls();
+      updateDSPParameters();
+    });
+
+    document.getElementById('swDelay').addEventListener('click', () => {
+      state.delay.on = !state.delay.on;
+      renderPedalboardControls();
+      updateDSPParameters();
+    });
+
+    document.getElementById('swReverb').addEventListener('click', () => {
+      state.reverb.on = !state.reverb.on;
+      renderPedalboardControls();
+      updateDSPParameters();
+    });
+
+    document.getElementById('ampType').addEventListener('change', (e) => {
+      state.amp.type = e.target.value;
+      updateDSPParameters();
+    });
+    document.getElementById('swAmp').addEventListener('click', () => {
+      state.amp.on = !state.amp.on;
+      renderPedalboardControls();
+      updateDSPParameters();
+    });
+
+    // Tab Sequencer Transport & Bar Editing
+    document.getElementById('btnPlayStop').addEventListener('click', () => {
+      if (state.isPlaying) pausePlayback();
+      else startPlayback();
+    });
+    document.getElementById('btnStopReset').addEventListener('click', stopPlayback);
+
+    document.getElementById('bpmInput').addEventListener('change', (e) => {
+      state.bpm = Math.max(40, Math.min(240, parseInt(e.target.value, 10) || 120));
+      e.target.value = state.bpm;
+      if (state.isPlaying) {
+        pausePlayback();
+        startPlayback();
+      }
+    });
+
+    document.getElementById('loopStartSelect').addEventListener('change', (e) => {
+      state.loopStart = parseInt(e.target.value, 10);
+      if (state.loopEnd < state.loopStart) state.loopEnd = state.loopStart;
+      updateLoopSelectors();
+      renderTabGrid();
+    });
+
+    document.getElementById('loopEndSelect').addEventListener('change', (e) => {
+      state.loopEnd = parseInt(e.target.value, 10);
+      if (state.loopStart > state.loopEnd) state.loopStart = state.loopEnd;
+      updateLoopSelectors();
+      renderTabGrid();
+    });
+
+    document.getElementById('btnLoadDemoRiff').addEventListener('click', () => {
+      stopPlayback();
+      const key = document.getElementById('demoRiffSelect').value;
+      loadDemoRiff(key);
+      showToast('데모 리프를 불러왔습니다.');
+    });
+
+    document.getElementById('btnAddBar').addEventListener('click', () => {
+      if (state.bars >= 16) return showToast('최대 16마디까지 확장할 수 있습니다.');
+      for (let s = 0; s < 6; s++) {
+        state.grid[s].push(...Array(16).fill(null));
+      }
+      state.pm.push(...Array(16).fill(false));
+      state.barChords.push(null);
+      state.bars++;
+      state.loopEnd = state.bars - 1;
+      updateLoopSelectors();
+      renderTabGrid();
+      showToast(`마디 추가됨 (총 ${state.bars}마디)`);
+    });
+
+    document.getElementById('btnRemoveBar').addEventListener('click', () => {
+      if (state.bars <= 1) return showToast('최소 1마디는 유지해야 합니다.');
+      for (let s = 0; s < 6; s++) {
+        state.grid[s].splice(-16, 16);
+      }
+      state.pm.splice(-16, 16);
+      state.barChords.pop();
+      state.bars--;
+      state.selectedStep = Math.min(state.selectedStep, state.bars * 16 - 1);
+      updateLoopSelectors();
+      renderTabGrid();
+      showToast(`마지막 마디 삭제됨 (총 ${state.bars}마디)`);
+    });
+
+    document.getElementById('btnClearTab').addEventListener('click', () => {
+      stopPlayback();
+      const total = state.bars * 16;
+      state.grid = Array.from({ length: 6 }, () => Array(total).fill(null));
+      state.pm = Array(total).fill(false);
+      state.barChords = Array(state.bars).fill(null);
+      renderTabGrid();
+      showToast('타브 그리드를 모두 비웠습니다.');
+    });
+
+    // Quick Fret Input Pad
+    const padWrap = document.getElementById('fretPadButtons');
+    for (let f = 0; f <= 22; f++) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'fret-btn';
+      b.textContent = f;
+      b.addEventListener('click', () => setCellNote(f));
+      padWrap.appendChild(b);
+    }
+
+    document.getElementById('btnPadDead').addEventListener('click', () => setCellNote('X'));
+    document.getElementById('btnPadPM').addEventListener('click', () => {
+      state.pm[state.selectedStep] = !state.pm[state.selectedStep];
+      renderTabGrid();
+    });
+    document.getElementById('btnPadErase').addEventListener('click', () => setCellNote(null));
+
+    // Keyboard Shortcuts for Tab Grid Editing & Transport
+    window.addEventListener('keydown', (e) => {
+      const tag = document.activeElement ? document.activeElement.tagName : '';
+      if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
+
+      if (e.code === 'Space') {
+        e.preventDefault();
+        if (state.isPlaying) pausePlayback();
+        else startPlayback();
+        return;
+      }
+
+      const maxStep = state.bars * 16 - 1;
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        state.selectedString = Math.max(0, state.selectedString - 1);
+        renderTabGrid();
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        state.selectedString = Math.min(5, state.selectedString + 1);
+        renderTabGrid();
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        state.selectedStep = Math.max(0, state.selectedStep - 1);
+        renderTabGrid();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        state.selectedStep = Math.min(maxStep, state.selectedStep + 1);
+        renderTabGrid();
+      } else if (e.key >= '0' && e.key <= '9') {
+        e.preventDefault();
+        const d = parseInt(e.key, 10);
+        if (state.pendingDigit !== null) {
+          const combined = state.pendingDigit * 10 + d;
+          clearTimeout(state.pendingTimer);
+          state.pendingDigit = null;
+          setCellNote(combined <= 22 ? combined : d);
+        } else {
+          setCellNote(d);
+          if (d === 1 || d === 2) {
+            state.pendingDigit = d;
+            state.pendingTimer = setTimeout(() => {
+              state.pendingDigit = null;
+            }, 650);
+          }
+        }
+      } else if (e.key === 'x' || e.key === 'X') {
+        e.preventDefault();
+        setCellNote('X');
+      } else if (e.key === 'm' || e.key === 'M') {
+        e.preventDefault();
+        state.pm[state.selectedStep] = !state.pm[state.selectedStep];
+        renderTabGrid();
+      } else if (e.key === 'Backspace' || e.key === 'Delete') {
+        e.preventDefault();
+        setCellNote(null);
+      }
+    });
+  }
+
+  /* =========================================================================
+   * 12. APPLICATION BOOTSTRAP
+   * ========================================================================= */
+  function initApp() {
+    bindEvents();
+    renderGuitarModelUI();
+    renderPedalboardControls();
+    loadDemoRiff('metalRiff');
+    loadRefSample('metalScoop');
+    startMeterLoop();
+  }
+
+  initApp();
+})();
+</script>
+</body>
+</html>
